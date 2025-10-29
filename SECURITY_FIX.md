@@ -51,12 +51,53 @@ NEXT_PUBLIC_SANITY_DATASET=production
 ### 5. **Deployment Security**
 
 **For Vercel deployment:**
-1. Go to Vercel dashboard → Your project → Settings → Environment Variables
-2. Add these variables:
-   - `SANITY_API_TOKEN` = your new token
-   - `NEXT_PUBLIC_ADMIN_PASSWORD` = your admin password
-   - `NEXT_PUBLIC_SANITY_PROJECT_ID` = your project ID
-   - `NEXT_PUBLIC_SANITY_DATASET` = production
+
+**Step-by-step instructions:**
+
+1. **Go to Vercel Dashboard:**
+   - Visit [vercel.com](https://vercel.com)
+   - Log in to your account
+   - Select your project
+
+2. **Navigate to Settings:**
+   - Click on the **"Settings"** tab at the top of the page
+   - Scroll down to find **"Environment Variables"** section
+
+3. **Add Environment Variables:**
+   - Click the **"Add New"** button
+   - Add each variable one at a time:
+
+   **Variable 1:**
+   - Name: `SANITY_API_TOKEN`
+   - Value: Your new Sanity token (starts with `skey_`)
+   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Save"**
+
+   **Variable 2:**
+   - Name: `NEXT_PUBLIC_SANITY_PROJECT_ID`
+   - Value: Your Sanity project ID
+   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Save"**
+
+   **Variable 3:**
+   - Name: `NEXT_PUBLIC_SANITY_DATASET`
+   - Value: `production` (or your dataset name)
+   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Save"**
+
+   **Variable 4:**
+   - Name: `NEXT_PUBLIC_ADMIN_PASSWORD`
+   - Value: Your admin password
+   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Save"**
+
+4. **Redeploy:**
+   - Go to **"Deployments"** tab
+   - Click **"..."** menu on latest deployment
+   - Select **"Redeploy"**
+   - OR push a new commit to trigger automatic deployment
+
+📋 **See VERCELL_DEPLOYMENT.md for detailed visual guide**
 
 ### 6. **How It Works Now**
 

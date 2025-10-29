@@ -1,5 +1,6 @@
 import Button from './Button'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function MembershipCTA() {
   return (
@@ -72,10 +73,12 @@ export default function MembershipCTA() {
                 {/* Logo and Brand */}
                 <div className='text-center mb-4'>
                   <div className='flex items-center justify-center mb-2'>
-                    <img 
+                    <Image 
                       src='/logo.png' 
                       alt='Image Creatives Logo' 
-                      className='w-12 h-12 mr-3'
+                      width={48}
+                      height={48}
+                      className='mr-3'
                     />
                     <div>
                       <h3 className='text-2xl font-poppins font-bold text-gradient-flame'>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 
 export default function NavBar() {
@@ -8,13 +9,13 @@ export default function NavBar() {
     <nav className='bg-[#433F59] backdrop-blur-sm shadow-brand sticky top-0 z-50 border-b border-white/10'>
       <div className='max-w-7xl mx-auto px-4 py-4 flex justify-between items-center'>
         <Link href='/' className='group flex items-center space-x-3'>
-          <img 
+          <Image 
             src='/logo.png' 
             alt='Image Creatives Logo' 
-            className='h-10 w-10 object-contain transition-all duration-300 group-hover:scale-105'
-            onError={(e) => {
-              e.target.style.display = 'none'
-            }}
+            width={40}
+            height={40}
+            className='object-contain transition-all duration-300 group-hover:scale-105'
+            priority
           />
           <div className='flex flex-col'>
             <span className='text-2xl font-poppins font-bold text-gradient-flame cursor-pointer transition-all duration-300 group-hover:scale-105 leading-tight'>

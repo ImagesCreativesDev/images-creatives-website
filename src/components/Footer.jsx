@@ -1,3 +1,5 @@
+import Image from 'next/image'
+
 export default function Footer() {
   return (
     <footer className='bg-[#594255] text-white'>
@@ -6,13 +8,12 @@ export default function Footer() {
           {/* Brand Section */}
           <div>
             <div className='flex items-center space-x-3 mb-6'>
-              <img 
+              <Image 
                 src='/logo.png' 
                 alt='Image Creatives Logo' 
-                className='h-10 w-10 object-contain'
-                onError={(e) => {
-                  e.target.style.display = 'none'
-                }}
+                width={40}
+                height={40}
+                className='object-contain'
               />
               <div className='flex flex-col'>
                 <span className='text-2xl font-poppins font-bold text-gradient-flame leading-tight'>
