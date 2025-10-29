@@ -79,6 +79,7 @@ export default function MembershipCTA() {
                       width={48}
                       height={48}
                       className='mr-3'
+                      unoptimized
                     />
                     <div>
                       <h3 className='text-2xl font-poppins font-bold text-gradient-flame'>

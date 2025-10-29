@@ -16,6 +16,7 @@ export default function NavBar() {
             height={40}
             className='object-contain transition-all duration-300 group-hover:scale-105'
             priority
+            unoptimized
           />
           <div className='flex flex-col'>
             <span className='text-2xl font-poppins font-bold text-gradient-flame cursor-pointer transition-all duration-300 group-hover:scale-105 leading-tight'>

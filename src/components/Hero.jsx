@@ -13,6 +13,7 @@ export default function Hero({ title, subtitle, ctaText, ctaLink, backgroundImag
             fill
             className='object-cover'
             priority
+            unoptimized
           />
         ) : (
           <div className='w-full h-full bg-gradient-to-br from-orange-400 via-orange-600 to-purple-800'></div>

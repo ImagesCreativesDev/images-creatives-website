@@ -14,6 +14,7 @@ export default function Footer() {
                 width={40}
                 height={40}
                 className='object-contain'
+                unoptimized
               />
               <div className='flex flex-col'>
                 <span className='text-2xl font-poppins font-bold text-gradient-flame leading-tight'>
