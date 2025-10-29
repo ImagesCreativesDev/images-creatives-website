@@ -4,10 +4,17 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { password } = req.body
+    const { password } = req.body || {}
+
+    const configuredPassword = process.env.ADMIN_PASSWORD
+
+    if (!configuredPassword) {
+      // Surface a clear error if the env var is not configured on the server
+      return res.status(500).json({ message: 'ADMIN_PASSWORD is not configured on the server' })
+    }
 
     // Check password server-side only
-    if (password === process.env.ADMIN_PASSWORD) {
+    if ((password || '').trim() === configuredPassword) {
       // Generate a simple session token
       const sessionToken = Math.random().toString(36).substring(2) + Date.now().toString(36)
       
