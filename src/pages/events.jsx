@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import EventCard from '../components/EventCard'
 import { getUpcomingEvents } from '../lib/sanity'
 
@@ -58,6 +59,10 @@ export default function EventsPage({ events }) {
 
   return (
     <div className='min-h-screen bg-[#433F59]'>
+      <Head>
+        <title>Events - Image Creatives</title>
+        <meta name="description" content="Join us for inspiring workshops, meetings, and networking opportunities with Image Creatives of Southwest Florida." />
+      </Head>
       {/* Page Header */}
       <section className='py-16 bg-[#593831]'>
         <div className='max-w-6xl mx-auto px-4'>

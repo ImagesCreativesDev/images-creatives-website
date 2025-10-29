@@ -1,3 +1,4 @@
+import Head from 'next/head'
 import Hero from '../components/Hero'
 import Button from '../components/Button'
 import MemberSpotlight from '../components/MemberSpotlight'
@@ -8,6 +9,10 @@ import { getUpcomingEvents } from '../lib/sanity'
 export default function Home({ events }) {
   return (
     <div>
+      <Head>
+        <title>Image Creatives - Southwest Florida Photography Community</title>
+        <meta name="description" content="Join Image Creatives of Southwest Florida - Where passionate photographers find their tribe, elevate their craft, and flourish through shared knowledge and unwavering support." />
+      </Head>
       <Hero backgroundImage='/hero-bg.jpg' />
       
       {/* Member Spotlight Section */}

@@ -1,6 +1,12 @@
+import Head from 'next/head'
+
 export default function MembershipPage() {
   return (
     <div className='min-h-screen bg-[#433F59] py-12 md:py-20'>
+      <Head>
+        <title>Membership - Image Creatives</title>
+        <meta name="description" content="Join Image Creatives of Southwest Florida - $100 annual membership with access to monthly seminars, image competitions, and exclusive networking opportunities." />
+      </Head>
       <div className='max-w-4xl mx-auto px-4'>
         {/* Page Title */}
         <div className='text-center mb-16'>

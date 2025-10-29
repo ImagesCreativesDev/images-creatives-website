@@ -61,6 +61,12 @@ export default function NavBar() {
           >
             Get Started
           </Link>
+          <Link 
+            href='/admin' 
+            className='text-gray-400 hover:text-gray-300 transition-colors duration-300 font-inter text-xs'
+          >
+            Admin
+          </Link>
         </div>
         
         <div className='md:hidden'>
@@ -118,6 +124,15 @@ export default function NavBar() {
                 onClick={() => setIsOpen(false)}
               >
                 Get Started
+              </Link>
+            </div>
+            <div className='pt-2'>
+              <Link 
+                href='/admin' 
+                className='text-gray-400 hover:text-gray-300 transition-colors duration-300 font-inter text-xs'
+                onClick={() => setIsOpen(false)}
+              >
+                Admin
               </Link>
             </div>
           </div>

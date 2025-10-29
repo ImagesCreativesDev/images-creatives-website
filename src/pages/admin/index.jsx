@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Head from 'next/head'
 import { getUpcomingEvents } from '../../lib/sanity'
 
 export default function AdminDashboard() {
@@ -63,6 +64,9 @@ export default function AdminDashboard() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#433F59] flex items-center justify-center">
+        <Head>
+          <title>Admin - Image Creatives</title>
+        </Head>
         <div className="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
           <div className="text-center mb-6">
             <h1 className="text-2xl font-poppins font-bold text-gray-800 mb-2">
@@ -108,6 +112,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-[#433F59] py-8">
+      <Head>
+        <title>Admin Dashboard - Image Creatives</title>
+      </Head>
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

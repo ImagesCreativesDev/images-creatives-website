@@ -1,6 +1,12 @@
+import Head from 'next/head'
+
 export default function FreeMeeting() {
   return (
     <div className='min-h-screen bg-[#433F59] py-12'>
+      <Head>
+        <title>Attend a Free Meeting - Image Creatives</title>
+        <meta name="description" content="Experience an inspiring speaker, connect with local photographers, and see why Image Creatives is the perfect place to perfect your craft!" />
+      </Head>
         <div className='max-w-4xl mx-auto px-4'>
           {/* Header Section */}
           <div className='text-center mb-12'>

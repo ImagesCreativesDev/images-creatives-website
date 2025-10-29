@@ -1,0 +1,100 @@
+# 🔒 SECURE ENVIRONMENT SETUP
+
+## ⚠️ CRITICAL: GitHub Token Exposure Fix
+
+### 1. **IMMEDIATELY Revoke Exposed Token**
+1. Go to your Sanity dashboard
+2. Navigate to "API" section  
+3. Find the `ImageCreativesWebsiteAdmin` token
+4. **DELETE/REVOKE it immediately**
+
+### 2. **Create New Secure Token**
+1. Create a new token with same permissions:
+   - Manage SDK Apps: **Editor**
+   - Media Library: **Editor** 
+   - Canvas: **Editor**
+   - Deploy Studios: **Token Only**
+   - Project Scope: **Select Projects** → Choose your project
+2. **Copy the new token**
+
+### 3. **Secure Environment Variables**
+
+Create `.env.local` file in your project root:
+
+```bash
+# Sanity Configuration (SERVER-SIDE ONLY)
+SANITY_API_TOKEN=skey_your_new_token_here
+
+# Admin Password (CLIENT-SIDE - less sensitive)
+NEXT_PUBLIC_ADMIN_PASSWORD=YourSecurePassword123
+
+# Sanity Project Info (PUBLIC - safe to expose)
+NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
+NEXT_PUBLIC_SANITY_DATASET=production
+```
+
+### 4. **Git Security**
+
+**NEVER commit these files:**
+- `.env.local` (already in .gitignore)
+- `.env` 
+- Any file containing `SANITY_API_TOKEN`
+
+**Verify .gitignore includes:**
+```
+.env.local
+.env
+.env.production
+.env.development
+```
+
+### 5. **Deployment Security**
+
+**For Vercel deployment:**
+1. Go to Vercel dashboard → Your project → Settings → Environment Variables
+2. Add these variables:
+   - `SANITY_API_TOKEN` = your new token
+   - `NEXT_PUBLIC_ADMIN_PASSWORD` = your admin password
+   - `NEXT_PUBLIC_SANITY_PROJECT_ID` = your project ID
+   - `NEXT_PUBLIC_SANITY_DATASET` = production
+
+### 6. **How It Works Now**
+
+✅ **Secure**: Sanity token stays server-side only  
+✅ **Admin**: Password protected admin area  
+✅ **Public**: Project ID safe to expose  
+✅ **Git**: No sensitive data in repository  
+
+### 7. **Test the Fix**
+
+1. Restart your development server: `npm run dev`
+2. Visit `/admin` and test login
+3. Test creating/editing events
+4. Verify everything works
+
+## 🚨 **If Token Still Exposed**
+
+If GitHub still shows the token as exposed:
+
+1. **Check commit history**: The token might be in old commits
+2. **Force push**: After fixing, you may need to rewrite history
+3. **Contact GitHub**: If needed, contact GitHub support to clear the alert
+
+## ✅ **Security Checklist**
+
+- [ ] Old token revoked
+- [ ] New token created  
+- [ ] `.env.local` created with new token
+- [ ] `.env.local` in `.gitignore`
+- [ ] No sensitive data in commits
+- [ ] Vercel environment variables set
+- [ ] Admin area tested and working
+
+## 📞 **Need Help?**
+
+If you're still seeing GitHub alerts:
+1. Check if token appears in any committed files
+2. Search your repository for the old token string
+3. Consider creating a new Sanity project if needed
+
+The admin area will work perfectly with this secure setup!
