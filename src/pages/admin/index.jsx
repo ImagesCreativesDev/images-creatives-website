@@ -54,6 +54,8 @@ export default function AdminDashboard() {
       const data = await response.json()
       
       if (data.success) {
+        // Clear any previous error message before entering the dashboard
+        setMessage('')
         setIsAuthenticated(true)
         sessionStorage.setItem('admin-authenticated', 'true')
         sessionStorage.setItem('admin-token', data.token)
