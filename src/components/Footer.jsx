@@ -1,17 +1,28 @@
 export default function Footer() {
   return (
-    <footer className='bg-night text-white mt-20'>
+    <footer className='bg-[#594255] text-white'>
       <div className='max-w-6xl mx-auto px-4 py-16'>
-        <div className='grid md:grid-cols-4 gap-8 mb-12'>
+        <div className='grid md:grid-cols-2 gap-8 mb-12'>
           {/* Brand Section */}
-          <div className='md:col-span-2'>
-            <h3 className='text-2xl font-poppins font-bold text-gradient-flame mb-4'>
-              Image Creatives
-            </h3>
-            <p className='text-gray-300 font-inter leading-relaxed mb-6 max-w-md'>
-              Where artistic vision meets digital innovation. We craft stunning visual 
-              experiences that tell your story and captivate your audience.
-            </p>
+          <div>
+            <div className='flex items-center space-x-3 mb-6'>
+              <img 
+                src='/logo.png' 
+                alt='Image Creatives Logo' 
+                className='h-10 w-10 object-contain'
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                }}
+              />
+              <div className='flex flex-col'>
+                <span className='text-2xl font-poppins font-bold text-gradient-flame leading-tight'>
+                  Image Creatives
+                </span>
+                <span className='text-sm font-inter text-white leading-tight'>
+                  of Southwest Florida
+                </span>
+              </div>
+            </div>
             <div className='flex space-x-4'>
               <a href='#' className='w-10 h-10 bg-flame/20 rounded-brand flex items-center justify-center hover:bg-flame/30 transition-colors duration-300'>
                 <span className='text-flame'>📧</span>
@@ -32,23 +43,10 @@ export default function Footer() {
           <div>
             <h4 className='text-lg font-montserrat font-semibold text-white mb-4'>Quick Links</h4>
             <ul className='space-y-3'>
+              <li><a href='/events' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Events</a></li>
+              <li><a href='/membership' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Membership</a></li>
+              <li><a href='/free-meeting' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Free Meeting</a></li>
               <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Home</a></li>
-              <li><a href='#about' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>About</a></li>
-              <li><a href='#services' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Services</a></li>
-              <li><a href='#portfolio' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Portfolio</a></li>
-              <li><a href='#contact' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Contact</a></li>
-            </ul>
-          </div>
-          
-          {/* Services */}
-          <div>
-            <h4 className='text-lg font-montserrat font-semibold text-white mb-4'>Services</h4>
-            <ul className='space-y-3'>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Web Design</a></li>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Brand Identity</a></li>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Photography</a></li>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Digital Marketing</a></li>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Consulting</a></li>
             </ul>
           </div>
         </div>

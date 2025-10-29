@@ -1,140 +1,122 @@
 import Image from 'next/image'
 import { urlFor } from '../lib/sanity'
+import Button from './Button'
 
-export default function MemberSpotlight({ members = [] }) {
+export default function MemberSpotlight({ featuredMember }) {
   // Mock data for development
-  const mockMembers = [
-    {
-      _id: '1',
-      name: 'Sarah Chen',
-      role: 'Creative Director',
-      bio: 'Passionate about visual storytelling and brand identity. Sarah brings 8+ years of experience in digital design.',
-      image: null,
-      socialLinks: {
-        twitter: '#',
-        linkedin: '#',
-        instagram: '#'
+  const mockMember = {
+    _id: '1',
+    name: 'Karen Kurta',
+    businessName: 'Karen K Photo',
+    role: 'Commercial Photographer',
+    bio: 'Experienced commercial photographer with a background in marketing and design',
+    description: [
+      {
+        _type: 'block',
+        children: [
+          {
+            _type: 'span',
+            text: 'At Karen K Photo, we specialize in professional, high-quality photography for businesses, designed to elevate your brand and tell your story. From polished headshots and cohesive team portraits to dynamic corporate event coverage and stunning branding photography, we create visuals that inspire confidence and connection. Our expertise also extends to architectural photography, showcasing the innovation and craftsmanship of your projects to help you stand out in proposals, marketing materials, and real estate listings.'
+          }
+        ]
+      },
+      {
+        _type: 'block',
+        children: [
+          {
+            _type: 'span',
+            text: 'Founded by Karen Kurta, an experienced commercial photographer with a background in marketing and design, Karen K Photo blends technical expertise with creative storytelling to deliver impactful, business-focused results. Whether you are a professional refreshing your personal brand, a company strengthening its visual identity, or part of the architecture and real estate industries, we provide tailored photography services that meet your unique needs.'
+          }
+        ]
       }
-    },
-    {
-      _id: '2', 
-      name: 'Marcus Rodriguez',
-      role: 'Lead Photographer',
-      bio: 'Specializing in commercial and artistic photography. Marcus captures the essence of every moment.',
-      image: null,
-      socialLinks: {
-        twitter: '#',
-        linkedin: '#',
-        instagram: '#'
-      }
-    },
-    {
-      _id: '3',
-      name: 'Emma Thompson',
-      role: 'UX Designer',
-      bio: 'Creating intuitive user experiences that bridge the gap between design and functionality.',
-      image: null,
-      socialLinks: {
-        twitter: '#',
-        linkedin: '#',
-        instagram: '#'
-      }
-    }
-  ]
+    ],
+    image: null,
+    profileLink: '#profile'
+  }
 
-  const displayMembers = members.length > 0 ? members : mockMembers
+  const member = featuredMember || mockMember
+
+  // Helper function to render description blocks
+  const renderDescription = (description) => {
+    if (!description || !Array.isArray(description)) return null
+    return description.map((block, index) => (
+      <p key={index} className='text-gray-300 font-inter leading-relaxed mb-4'>
+        {block.children.map((child, childIndex) => (
+          <span key={childIndex}>{child.text}</span>
+        ))}
+      </p>
+    ))
+  }
 
   return (
-    <section className='py-20 bg-gradient-to-br from-light via-white to-light/50'>
+    <section className='py-12 md:py-20 bg-[#191C26]'>
       <div className='max-w-6xl mx-auto px-4'>
-        <div className='text-center mb-16'>
-          <h2 className='text-4xl md:text-5xl font-montserrat font-semibold text-night mb-6'>
-            Member Spotlight
+        {/* Section Header */}
+        <div className='mb-8'>
+          <h2 className='text-3xl md:text-4xl font-poppins font-bold text-white inline-flex items-center'>
+            Featured Member
+            <span className='ml-4 flex-1 h-px bg-gradient-to-r from-flame to-transparent'></span>
           </h2>
-          <p className='text-xl text-gray-600 max-w-3xl mx-auto font-inter'>
-            Meet the creative minds behind Image Creatives. Our talented team brings 
-            diverse skills and artistic vision to every project.
-          </p>
         </div>
 
-        <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-          {displayMembers.map((member) => (
-            <div 
-              key={member._id}
-              className='card-brand group hover:shadow-brand-xl transition-all duration-500 transform hover:-translate-y-2'
-            >
-              {/* Member Image */}
-              <div className='relative mb-6 overflow-hidden rounded-brand-lg'>
-                <div className='aspect-square bg-gradient-to-br from-flame/20 to-ember/20 flex items-center justify-center'>
-                  {member.image ? (
-                    <Image
-                      src={urlFor(member.image).width(400).height(400).url()}
-                      alt={member.name}
-                      width={400}
-                      height={400}
-                      className='w-full h-full object-cover group-hover:scale-110 transition-transform duration-500'
-                    />
-                  ) : (
-                    <div className='w-32 h-32 bg-gradient-flame rounded-full flex items-center justify-center text-white text-4xl font-poppins font-bold'>
-                      {member.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                  )}
+        {/* Featured Member Card */}
+        <div className='bg-gray-800/50 rounded-brand-lg overflow-hidden shadow-brand-xl'>
+          <div className='grid md:grid-cols-2 gap-0'>
+            {/* Left Column - Image */}
+            <div className='relative h-80 md:h-auto'>
+              {member.image ? (
+                <Image
+                  src={urlFor(member.image).width(600).height(800).url()}
+                  alt={member.name}
+                  width={600}
+                  height={800}
+                  className='w-full h-full object-cover'
+                />
+              ) : (
+                <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
+                  <div className='w-32 h-32 bg-gradient-flame rounded-full flex items-center justify-center text-white text-5xl font-poppins font-bold'>
+                    {member.name.split(' ').map(n => n[0]).join('')}
+                  </div>
                 </div>
-                <div className='absolute inset-0 bg-gradient-to-t from-night/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300'></div>
-              </div>
+              )}
+            </div>
 
-              {/* Member Info */}
-              <div className='text-center'>
-                <h3 className='text-xl font-montserrat font-semibold text-night mb-2 group-hover:text-gradient-flame transition-all duration-300'>
-                  {member.name}
-                </h3>
-                <p className='text-flame font-inter font-medium mb-4'>
-                  {member.role}
+            {/* Right Column - Content */}
+            <div className='p-8 md:p-12 flex flex-col justify-center'>
+              {/* Business Name */}
+              {member.businessName && (
+                <p className='text-flame font-inter text-sm md:text-base font-medium mb-2'>
+                  {member.businessName}
                 </p>
-                <p className='text-gray-600 font-inter leading-relaxed mb-6'>
+              )}
+              
+              {/* Member Name */}
+              <h3 className='text-3xl md:text-4xl font-poppins font-bold text-white mb-4'>
+                {member.name}
+              </h3>
+
+              {/* Description */}
+              {member.description && renderDescription(member.description)}
+              
+              {/* Fallback Bio */}
+              {!member.description && member.bio && (
+                <p className='text-gray-300 font-inter leading-relaxed mb-6'>
                   {member.bio}
                 </p>
+              )}
 
-                {/* Social Links */}
-                <div className='flex justify-center space-x-4'>
-                  {member.socialLinks?.twitter && (
-                    <a 
-                      href={member.socialLinks.twitter}
-                      className='w-10 h-10 bg-flame/10 rounded-brand flex items-center justify-center hover:bg-flame/20 transition-colors duration-300'
-                    >
-                      <span className='text-flame text-lg'>🐦</span>
-                    </a>
-                  )}
-                  {member.socialLinks?.linkedin && (
-                    <a 
-                      href={member.socialLinks.linkedin}
-                      className='w-10 h-10 bg-cool/10 rounded-brand flex items-center justify-center hover:bg-cool/20 transition-colors duration-300'
-                    >
-                      <span className='text-cool text-lg'>💼</span>
-                    </a>
-                  )}
-                  {member.socialLinks?.instagram && (
-                    <a 
-                      href={member.socialLinks.instagram}
-                      className='w-10 h-10 bg-ember/10 rounded-brand flex items-center justify-center hover:bg-ember/20 transition-colors duration-300'
-                    >
-                      <span className='text-ember text-lg'>📷</span>
-                    </a>
-                  )}
-                </div>
+              {/* CTA Button */}
+              <div className='mt-6'>
+                <Button 
+                  href={member.profileLink || '#profile'} 
+                  variant="flame"
+                  className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                >
+                  View This Photographer's Profile
+                </Button>
               </div>
             </div>
-          ))}
-        </div>
-
-        {/* View All Members CTA */}
-        <div className='text-center mt-12'>
-          <a 
-            href='#members'
-            className='btn-brand-cool text-lg px-8 py-4'
-          >
-            View All Members
-          </a>
+          </div>
         </div>
       </div>
     </section>

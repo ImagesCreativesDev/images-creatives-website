@@ -19,9 +19,36 @@ export default defineType({
     }),
     defineField({
       name: 'bio',
-      title: 'Bio',
+      title: 'Short Bio',
       type: 'text',
       validation: (Rule) => Rule.required().max(200),
+      description: 'Brief bio for member cards (max 200 characters)',
+    }),
+    defineField({
+      name: 'description',
+      title: 'Full Description',
+      type: 'array',
+      of: [{ type: 'block' }],
+      description: 'Full description with paragraphs for featured member layout',
+    }),
+    defineField({
+      name: 'businessName',
+      title: 'Business Name',
+      type: 'string',
+      description: 'Optional: Business or photography business name',
+    }),
+    defineField({
+      name: 'profileLink',
+      title: 'Profile Link',
+      type: 'url',
+      description: 'Link to full profile page',
+    }),
+    defineField({
+      name: 'featured',
+      title: 'Featured Member',
+      type: 'boolean',
+      description: 'Mark this member to be featured in the spotlight section',
+      initialValue: false,
     }),
     defineField({
       name: 'image',
