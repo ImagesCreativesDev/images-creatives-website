@@ -76,7 +76,8 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public
+# Note: public folder should NOT be ignored for Next.js projects
+# public
 
 # Storybook build outputs
 .out
