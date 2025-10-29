@@ -23,32 +23,36 @@
 1. **Go to your project dashboard** on Vercel
 2. Click on the **"Settings"** tab (at the top of the page)
 3. Scroll down to find the **"Environment Variables"** section
-4. Click **"Add New"** button
+4. You'll see **Key** and **Value** input fields ready to use (no button needed to start)
 
-#### Add these 4 environment variables:
+#### Add these 4 environment variables one at a time:
 
 **Variable 1:**
-- **Name:** `SANITY_API_TOKEN`
-- **Value:** Your Sanity API token (starts with `skey_`)
-- **Environment:** Select all (Production, Preview, Development)
-- Click **"Save"**
+- In the **Key** field: Enter `SANITY_API_TOKEN`
+- In the **Value** field: Enter your Sanity API token (starts with `skey_`)
+- Make sure **Environments** dropdown says "All Environments" (or select Production, Preview, Development)
+- Click the **"Save"** button (top right of the form)
+- After saving, you'll see it in the list below
 
 **Variable 2:**
-- **Name:** `NEXT_PUBLIC_SANITY_PROJECT_ID`
-- **Value:** Your Sanity project ID (e.g., `abc123xyz`)
-- **Environment:** Select all (Production, Preview, Development)
+- Click **"Add Another"** button (or the input fields will appear fresh)
+- In the **Key** field: Enter `NEXT_PUBLIC_SANITY_PROJECT_ID`
+- In the **Value** field: Enter your Sanity project ID (e.g., `abc123xyz`)
+- Make sure **Environments** is set to "All Environments"
 - Click **"Save"**
 
 **Variable 3:**
-- **Name:** `NEXT_PUBLIC_SANITY_DATASET`
-- **Value:** `production` (or your dataset name)
-- **Environment:** Select all (Production, Preview, Development)
+- Click **"Add Another"** (or fields will be fresh)
+- In the **Key** field: Enter `NEXT_PUBLIC_SANITY_DATASET`
+- In the **Value** field: Enter `production` (or your dataset name)
+- Make sure **Environments** is set to "All Environments"
 - Click **"Save"**
 
 **Variable 4:**
-- **Name:** `NEXT_PUBLIC_ADMIN_PASSWORD`
-- **Value:** Your admin password (for the admin area)
-- **Environment:** Select all (Production, Preview, Development)
+- Click **"Add Another"** (or fields will be fresh)
+- In the **Key** field: Enter `ADMIN_PASSWORD` ⚠️ **IMPORTANT:** Do NOT use `NEXT_PUBLIC_ADMIN_PASSWORD` - the password must stay server-side only for security!
+- In the **Value** field: Enter your admin password
+- Make sure **Environments** is set to "All Environments"
 - Click **"Save"**
 
 ### 3. Redeploy After Adding Variables
@@ -115,7 +119,7 @@ If images are still not showing:
 - [ ] `SANITY_API_TOKEN` added to environment variables
 - [ ] `NEXT_PUBLIC_SANITY_PROJECT_ID` added to environment variables
 - [ ] `NEXT_PUBLIC_SANITY_DATASET` added to environment variables
-- [ ] `NEXT_PUBLIC_ADMIN_PASSWORD` added to environment variables
+- [ ] `ADMIN_PASSWORD` added to environment variables (NOT `NEXT_PUBLIC_ADMIN_PASSWORD` - server-side only!)
 - [ ] Project redeployed after adding variables
 - [ ] Images displaying correctly on live site
 - [ ] Admin area accessible and working

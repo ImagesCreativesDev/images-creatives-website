@@ -39,14 +39,33 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault()
-    if (password === process.env.NEXT_PUBLIC_ADMIN_PASSWORD) {
-      setIsAuthenticated(true)
-      sessionStorage.setItem('admin-authenticated', 'true')
-      loadData()
-    } else {
-      setMessage('Invalid password')
+    setLoading(true)
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      })
+      
+      const data = await response.json()
+      
+      if (data.success) {
+        setIsAuthenticated(true)
+        sessionStorage.setItem('admin-authenticated', 'true')
+        sessionStorage.setItem('admin-token', data.token)
+        loadData()
+      } else {
+        setMessage('Invalid password')
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setMessage('Error logging in. Please try again.')
+    } finally {
+      setLoading(false)
     }
   }
 

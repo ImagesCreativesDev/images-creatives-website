@@ -25,8 +25,8 @@ Create `.env.local` file in your project root:
 # Sanity Configuration (SERVER-SIDE ONLY)
 SANITY_API_TOKEN=skey_your_new_token_here
 
-# Admin Password (CLIENT-SIDE - less sensitive)
-NEXT_PUBLIC_ADMIN_PASSWORD=YourSecurePassword123
+# Admin Password (SERVER-SIDE ONLY - secure)
+ADMIN_PASSWORD=YourSecurePassword123
 
 # Sanity Project Info (PUBLIC - safe to expose)
 NEXT_PUBLIC_SANITY_PROJECT_ID=your-project-id
@@ -64,31 +64,34 @@ NEXT_PUBLIC_SANITY_DATASET=production
    - Scroll down to find **"Environment Variables"** section
 
 3. **Add Environment Variables:**
-   - Click the **"Add New"** button
-   - Add each variable one at a time:
+   - You'll see **Key** and **Value** input fields already visible (no button needed)
+   - Add each variable one at a time, then click **"Save"** after each one:
 
    **Variable 1:**
-   - Name: `SANITY_API_TOKEN`
-   - Value: Your new Sanity token (starts with `skey_`)
-   - Environment: Select **all** (Production, Preview, Development)
-   - Click **"Save"**
+   - **Key field:** Enter `SANITY_API_TOKEN`
+   - **Value field:** Enter your new Sanity token (starts with `skey_`)
+   - **Environments dropdown:** Make sure it says "All Environments" (or select Production, Preview, Development)
+   - Click **"Save"** button (top right)
 
    **Variable 2:**
-   - Name: `NEXT_PUBLIC_SANITY_PROJECT_ID`
-   - Value: Your Sanity project ID
-   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Add Another"** button to add a new row
+   - **Key field:** Enter `NEXT_PUBLIC_SANITY_PROJECT_ID`
+   - **Value field:** Enter your Sanity project ID
+   - **Environments:** Select "All Environments"
    - Click **"Save"**
 
    **Variable 3:**
-   - Name: `NEXT_PUBLIC_SANITY_DATASET`
-   - Value: `production` (or your dataset name)
-   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Add Another"** button
+   - **Key field:** Enter `NEXT_PUBLIC_SANITY_DATASET`
+   - **Value field:** Enter `production` (or your dataset name)
+   - **Environments:** Select "All Environments"
    - Click **"Save"**
 
    **Variable 4:**
-   - Name: `NEXT_PUBLIC_ADMIN_PASSWORD`
-   - Value: Your admin password
-   - Environment: Select **all** (Production, Preview, Development)
+   - Click **"Add Another"** button
+   - **Key field:** Enter `ADMIN_PASSWORD` (⚠️ NO `NEXT_PUBLIC_` prefix - this keeps it server-side only!)
+   - **Value field:** Enter your admin password
+   - **Environments:** Select "All Environments"
    - Click **"Save"**
 
 4. **Redeploy:**
