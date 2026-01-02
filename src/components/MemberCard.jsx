@@ -14,17 +14,18 @@ export default function MemberCard({ member }) {
     <Link href={`/members/${slug}`}>
       <div className='bg-gray-900 rounded-brand-lg overflow-hidden shadow-brand-xl hover:shadow-brand-lg transition-all duration-300 cursor-pointer group'>
         {/* Image Section */}
-        <div className='relative h-64 overflow-hidden'>
+        <div className='relative overflow-hidden' style={{ maxHeight: '700px' }}>
           {hasValidImage ? (
             <Image
-              src={urlFor(member.image).width(400).height(400).url()}
+              src={urlFor(member.image).width(600).url()}
               alt={member.name}
-              width={400}
-              height={400}
-              className='w-full h-full object-cover group-hover:scale-105 transition-transform duration-300'
+              width={600}
+              height={700}
+              className='w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300'
+              style={{ maxHeight: '700px' }}
             />
           ) : (
-            <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
+            <div className='w-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center' style={{ minHeight: '256px', maxHeight: '700px' }}>
               <div className='w-24 h-24 bg-gradient-flame rounded-full flex items-center justify-center text-white text-4xl font-poppins font-bold'>
                 {member.name.split(' ').map(n => n[0]).join('')}
               </div>
