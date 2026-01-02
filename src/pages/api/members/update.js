@@ -25,10 +25,15 @@ export default async function handler(req, res) {
 
     // If this member is being featured, unfeature all others first
     if (featured) {
-      await client
-        .patch('*[_type == "member" && featured == true]')
-        .set({ featured: false })
-        .commit()
+      const featuredMembers = await client.fetch(
+        '*[_type == "member" && featured == true && _id != $currentId] { _id }',
+        { currentId: _id }
+      )
+      
+      // Unfeature all currently featured members (except the one being updated)
+      for (const member of featuredMembers) {
+        await client.patch(member._id).set({ featured: false }).commit()
+      }
     }
 
     const member = {
@@ -50,6 +55,9 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Error updating member:', error)
-    res.status(500).json({ message: 'Error updating member' })
+    res.status(500).json({ 
+      message: 'Error updating member',
+      error: error.message || 'Unknown error'
+    })
   }
 }

@@ -677,16 +677,20 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
         })
       })
 
+      const data = await response.json()
+      
       if (response.ok) {
         onMessage(selectedMemberId && selectedMemberId !== 'new' ? 'Member updated and featured!' : 'Member created and featured!')
         resetForm()
         onUpdate()
       } else {
-        onMessage('Error saving member', 'error')
+        const errorMsg = data.message || data.error || 'Error saving member'
+        console.error('API Error:', data)
+        onMessage(errorMsg, 'error')
       }
     } catch (error) {
       console.error('Error:', error)
-      onMessage('Error saving member', 'error')
+      onMessage(`Error saving member: ${error.message}`, 'error')
     }
   }
 

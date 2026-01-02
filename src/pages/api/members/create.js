@@ -24,10 +24,14 @@ export default async function handler(req, res) {
 
     // If this member is being featured, unfeature all others first
     if (featured) {
-      await client
-        .patch('*[_type == "member" && featured == true]')
-        .set({ featured: false })
-        .commit()
+      const featuredMembers = await client.fetch(
+        '*[_type == "member" && featured == true] { _id }'
+      )
+      
+      // Unfeature all currently featured members
+      for (const member of featuredMembers) {
+        await client.patch(member._id).set({ featured: false }).commit()
+      }
     }
 
     const member = {
@@ -50,6 +54,9 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Error creating member:', error)
-    res.status(500).json({ message: 'Error creating member' })
+    res.status(500).json({ 
+      message: 'Error creating member',
+      error: error.message || 'Unknown error'
+    })
   }
 }
