@@ -10,10 +10,30 @@
 import { NextStudio } from 'next-sanity/studio'
 import config from '../../../../sanity.config'
 
-export const dynamic = 'force-static'
+// Studio must be dynamic, not static
+export const dynamic = 'force-dynamic'
 
 export { metadata, viewport } from 'next-sanity/studio'
 
 export default function StudioPage() {
+  // Verify environment variables are set
+  if (!process.env.NEXT_PUBLIC_SANITY_PROJECT_ID) {
+    return (
+      <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+        <h1>Configuration Error</h1>
+        <p>NEXT_PUBLIC_SANITY_PROJECT_ID is not set. Please configure your environment variables.</p>
+      </div>
+    )
+  }
+
+  if (!process.env.NEXT_PUBLIC_SANITY_DATASET) {
+    return (
+      <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
+        <h1>Configuration Error</h1>
+        <p>NEXT_PUBLIC_SANITY_DATASET is not set. Please configure your environment variables.</p>
+      </div>
+    )
+  }
+
   return <NextStudio config={config} />
 }
