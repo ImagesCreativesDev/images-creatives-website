@@ -10,12 +10,14 @@
 
 ### 2. **Create New Secure Token**
 1. Create a new token with same permissions:
-   - Manage SDK Apps: **Editor**
+   - **Editor** (Full Editor permissions - REQUIRED for delete operations)
    - Media Library: **Editor** 
    - Canvas: **Editor**
    - Deploy Studios: **Token Only**
    - Project Scope: **Select Projects** → Choose your project
 2. **Copy the new token**
+
+⚠️ **IMPORTANT:** The token MUST have **Editor** permissions (not Viewer or Editor restricted) to allow delete operations in the admin area.
 
 ### 3. **Secure Environment Variables**
 
