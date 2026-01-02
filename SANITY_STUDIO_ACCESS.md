@@ -62,11 +62,38 @@ After redeploying:
 2. Try deleting an event
 3. It should work now! ✅
 
+## Fixing CORS Error (Studio Not Working on Production)
+
+If you see CORS errors like:
+```
+Access to XMLHttpRequest at 'https://n8s34eag.api.sanity.io/...' from origin 'https://www.imagecreatives.com' has been blocked by CORS policy
+```
+
+**You need to add your domain to Sanity's allowed CORS origins:**
+
+1. Go to [sanity.io/manage](https://sanity.io/manage)
+2. Select your project
+3. Go to **API** → **CORS origins**
+4. Click **"Add CORS origin"**
+5. Add these URLs (one at a time):
+   - `https://www.imagecreatives.com`
+   - `https://imagecreatives.com` (if you use both)
+   - `https://images-creatives-website-3sd8.vercel.app` (your Vercel preview URL)
+   - For each, check **"Allow credentials"**
+6. Click **"Save"**
+
+After adding the CORS origins, the studio should work on your production site!
+
 ## Troubleshooting
 
 ### "No studios" on Sanity.io
 - ✅ **This is normal!** Your studio is embedded in your Next.js app
 - Access it at `/studio` on your website, not on Sanity.io
+
+### CORS Error (Most Common Issue)
+- **See section above** - You must add your domain to Sanity's CORS origins
+- The error will say "blocked by CORS policy" in the console
+- This only affects production, not localhost
 
 ### Still can't delete after updating token
 - Verify the token has **Editor** permissions (not Viewer)
@@ -80,6 +107,7 @@ After redeploying:
   - `NEXT_PUBLIC_SANITY_DATASET`
 - Check Vercel build logs for any errors
 - Try accessing it locally first: `npm run dev` then `http://localhost:3000/studio`
+- **If you see CORS errors, add your domain to Sanity CORS origins (see above)**
 
 ## Quick Reference
 
