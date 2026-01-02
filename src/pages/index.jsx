@@ -4,9 +4,9 @@ import Button from '../components/Button'
 import MemberSpotlight from '../components/MemberSpotlight'
 import EventsCarousel from '../components/EventsCarousel'
 import MembershipCTA from '../components/MembershipCTA'
-import { getUpcomingEvents } from '../lib/sanity'
+import { getUpcomingEvents, getFeaturedMember } from '../lib/sanity'
 
-export default function Home({ events }) {
+export default function Home({ events, featuredMember }) {
   return (
     <div>
       <Head>
@@ -16,7 +16,7 @@ export default function Home({ events }) {
       <Hero backgroundImage='/hero-bg.jpg' />
       
       {/* Member Spotlight Section */}
-      <MemberSpotlight />
+      <MemberSpotlight featuredMember={featuredMember} />
       
       {/* Upcoming Events Section */}
       <EventsCarousel events={events} />
@@ -29,17 +29,23 @@ export default function Home({ events }) {
 
 export async function getServerSideProps() {
   try {
-    const events = await getUpcomingEvents(5) // Get 5 events for the carousel
+    const [events, featuredMember] = await Promise.all([
+      getUpcomingEvents(5), // Get 5 events for the carousel
+      getFeaturedMember() // Get the featured member
+    ])
+    
     return {
       props: {
-        events: events || []
+        events: events || [],
+        featuredMember: featuredMember || null
       }
     }
   } catch (error) {
-    console.error('Error fetching events for homepage:', error)
+    console.error('Error fetching data for homepage:', error)
     return {
       props: {
-        events: []
+        events: [],
+        featuredMember: null
       }
     }
   }

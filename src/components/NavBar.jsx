@@ -37,6 +37,13 @@ export default function NavBar() {
             <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-flame transition-all duration-300 group-hover:w-full'></span>
           </Link>
           <Link 
+            href='/members' 
+            className='text-white font-inter font-medium hover:text-ember transition-colors duration-300 relative group'
+          >
+            Members
+            <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-flame transition-all duration-300 group-hover:w-full'></span>
+          </Link>
+          <Link 
             href='/membership' 
             className='text-white font-inter font-medium hover:text-ember transition-colors duration-300 relative group'
           >
@@ -97,6 +104,13 @@ export default function NavBar() {
               onClick={() => setIsOpen(false)}
             >
               Events
+            </Link>
+            <Link 
+              href='/members' 
+              className='block text-white font-inter font-medium hover:text-ember transition-colors duration-300 py-2'
+              onClick={() => setIsOpen(false)}
+            >
+              Members
             </Link>
             <Link 
               href='/membership' 

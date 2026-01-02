@@ -2,6 +2,22 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { getUpcomingEvents } from '../../lib/sanity'
+import imageUrlBuilder from '@sanity/image-url'
+
+// Create image URL builder for client-side use
+const getImageUrl = (image) => {
+  if (!image || typeof image !== 'object') return null
+  try {
+    const builder = imageUrlBuilder({
+      projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+      dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+    })
+    return builder.image(image).width(200).height(200).url()
+  } catch (error) {
+    console.error('Error building image URL:', error)
+    return null
+  }
+}
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -623,19 +639,28 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
     bio: '',
     description: '',
     profileLink: '',
-    image: ''
+    image: null // Changed to null for image object
   })
+  const [imageFile, setImageFile] = useState(null)
+  const [imagePreview, setImagePreview] = useState(null)
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  // Find the currently featured member
+  const featuredMember = members.find(m => m.featured === true)
 
   const resetForm = () => {
     setFormData({
       name: '',
+      slug: '',
       businessName: '',
       role: '',
       bio: '',
       description: '',
       profileLink: '',
-      image: ''
+      image: null
     })
+    setImageFile(null)
+    setImagePreview(null)
     setSelectedMemberId('')
     setShowForm(false)
   }
@@ -649,23 +674,134 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
       if (member) {
         setFormData({
           name: member.name || '',
+          slug: member.slug?.current || member.slug || '',
           businessName: member.businessName || '',
           role: member.role || '',
           bio: member.bio || '',
           description: member.description || '',
           profileLink: member.profileLink || '',
-          image: member.image || ''
+          image: member.image || null // Keep existing image object if present
         })
+        setImageFile(null)
+        setImagePreview(null)
         setSelectedMemberId(memberId)
         setShowForm(true)
       }
     }
   }
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        onMessage('Please select a valid image file', 'error')
+        return
+      }
+      
+      // Validate file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        onMessage('Image size must be less than 10MB', 'error')
+        return
+      }
+
+      setImageFile(file)
+      
+      // Create preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const uploadImageToSanity = async (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = async () => {
+        try {
+          const base64Data = reader.result
+          const filename = file.name || 'member-image.jpg'
+          
+          const response = await fetch('/api/members/upload-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              imageData: base64Data,
+              filename: filename,
+            }),
+          })
+
+          const data = await response.json()
+          
+          if (response.ok) {
+            resolve(data.image)
+          } else {
+            reject(new Error(data.message || 'Failed to upload image'))
+          }
+        } catch (error) {
+          reject(error)
+        }
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
+  const handleFeatureMember = async (memberId) => {
+    if (!confirm('Are you sure you want to feature this member? This will unfeature the current featured member.')) return
+
+    try {
+      const response = await fetch('/api/members/feature', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ _id: memberId })
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        onMessage('Member featured successfully!')
+        onUpdate()
+      } else {
+        const errorMsg = data.message || data.error || 'Error featuring member'
+        console.error('Feature API Error:', data)
+        onMessage(errorMsg, 'error')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      onMessage(`Error featuring member: ${error.message}`, 'error')
+    }
+  }
+
+  const generateSlug = (name) => {
+    if (!name) return ''
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
     try {
+      setUploadingImage(true)
+      
+      // Upload image if a new file was selected
+      let imageData = formData.image // Keep existing image if no new file
+      if (imageFile) {
+        imageData = await uploadImageToSanity(imageFile)
+      }
+      
+      // Generate slug from name if not provided
+      const slug = formData.slug || generateSlug(formData.name)
+      
       const url = selectedMemberId && selectedMemberId !== 'new' ? '/api/members/update' : '/api/members/create'
       const method = selectedMemberId && selectedMemberId !== 'new' ? 'PUT' : 'POST'
       
@@ -676,6 +812,8 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
         },
         body: JSON.stringify({
           ...formData,
+          slug: slug,
+          image: imageData,
           _id: selectedMemberId !== 'new' ? selectedMemberId : undefined,
           featured: true
         })
@@ -695,6 +833,8 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
     } catch (error) {
       console.error('Error:', error)
       onMessage(`Error saving member: ${error.message}`, 'error')
+    } finally {
+      setUploadingImage(false)
     }
   }
 
@@ -714,9 +854,37 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
           Featured Member Management
         </h2>
         
-        <div>
+        {/* Current Featured Member Display */}
+        {featuredMember ? (
+          <div className="mb-6 p-4 bg-flame/10 border-2 border-flame rounded-lg">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-inter font-medium text-gray-600 mb-1">
+                  Currently Featured Member:
+                </p>
+                <p className="text-lg font-poppins font-bold text-gray-800">
+                  {featuredMember.name}
+                  {featuredMember.businessName && (
+                    <span className="text-gray-600 font-normal"> - {featuredMember.businessName}</span>
+                  )}
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-flame text-white rounded-full text-sm font-inter font-medium">
+                Featured
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm font-inter text-yellow-800">
+              ⚠️ No member is currently featured. Select a member below to feature them.
+            </p>
+          </div>
+        )}
+        
+        <div className="mb-4">
           <label className="block text-gray-700 font-inter font-medium mb-2">
-            Select Member to Feature
+            Select Member to Feature or Edit
           </label>
           <select
             value={selectedMemberId}
@@ -728,10 +896,55 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
             {members.map((member) => (
               <option key={member._id} value={member._id}>
                 {member.name} {member.businessName && `(${member.businessName})`}
+                {member.featured && ' ⭐ Featured'}
               </option>
             ))}
           </select>
         </div>
+
+        {/* Quick Feature Buttons */}
+        {members.length > 0 && (
+          <div className="mt-6">
+            <p className="text-sm font-inter font-medium text-gray-700 mb-3">
+              Quick Feature (without editing):
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {members.map((member) => (
+                <div
+                  key={member._id}
+                  className={`p-3 border rounded-lg flex items-center justify-between ${
+                    member.featured
+                      ? 'bg-flame/10 border-flame'
+                      : 'bg-gray-50 border-gray-200'
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="font-inter font-medium text-gray-800 truncate">
+                      {member.name}
+                    </p>
+                    {member.businessName && (
+                      <p className="text-sm text-gray-600 truncate">
+                        {member.businessName}
+                      </p>
+                    )}
+                  </div>
+                  {member.featured ? (
+                    <span className="ml-2 px-2 py-1 bg-flame text-white rounded text-xs font-inter font-medium whitespace-nowrap">
+                      Featured
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleFeatureMember(member._id)}
+                      className="ml-2 px-3 py-1 bg-flame text-white rounded text-sm hover:bg-ember transition-colors duration-300 font-inter font-medium whitespace-nowrap"
+                    >
+                      Feature
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Member Form */}
@@ -769,17 +982,41 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
               </div>
             </div>
 
-            <div>
-              <label className="block text-gray-700 font-inter font-medium mb-2">
-                Role/Title
-              </label>
-              <input
-                type="text"
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
-                placeholder="e.g., Portrait Photographer"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
-              />
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-gray-700 font-inter font-medium mb-2">
+                  Role/Title
+                </label>
+                <input
+                  type="text"
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  placeholder="e.g., Portrait Photographer"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-gray-700 font-inter font-medium mb-2">
+                  Slug (URL-friendly)
+                </label>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                  onBlur={(e) => {
+                    // Auto-generate slug from name if empty
+                    if (!e.target.value && formData.name) {
+                      setFormData({...formData, slug: generateSlug(formData.name)})
+                    }
+                  }}
+                  placeholder="Auto-generated from name"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent bg-gray-50"
+                />
+                <p className="text-xs text-gray-500 mt-1 font-inter">
+                  URL: /members/{formData.slug || generateSlug(formData.name) || 'slug'}
+                </p>
+              </div>
             </div>
 
             <div>
@@ -812,7 +1049,7 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-gray-700 font-inter font-medium mb-2">
-                  Profile Link
+                  Members Website Link
                 </label>
                 <input
                   type="url"
@@ -825,29 +1062,66 @@ function MemberManagement({ members, onUpdate, onMessage, loading }) {
               
               <div>
                 <label className="block text-gray-700 font-inter font-medium mb-2">
-                  Image URL
+                  Profile Image
                 </label>
                 <input
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => setFormData({...formData, image: e.target.value})}
-                  placeholder="https://..."
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
                 />
+                {imagePreview && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600 mb-2">New Image Preview:</p>
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+                {formData.image && !imageFile && (
+                  <div className="mt-3">
+                    <p className="text-sm text-gray-600 mb-2">Current Image:</p>
+                    {(() => {
+                      const imageUrl = getImageUrl(formData.image)
+                      return imageUrl ? (
+                        <img 
+                          src={imageUrl} 
+                          alt="Current" 
+                          className="w-32 h-32 object-cover rounded-lg border border-gray-300"
+                        />
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">
+                          Image exists (upload new file to replace)
+                        </p>
+                      )
+                    })()}
+                    <p className="mt-2 text-sm text-gray-600">
+                      Upload a new file to replace the current image.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
             <div className="flex space-x-4 pt-4">
               <button
                 type="submit"
-                className="bg-flame text-white px-6 py-3 rounded-lg hover:bg-ember transition-colors duration-300 font-inter font-medium"
+                disabled={uploadingImage}
+                className="bg-flame text-white px-6 py-3 rounded-lg hover:bg-ember transition-colors duration-300 font-inter font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {selectedMemberId === 'new' ? 'Create & Feature Member' : 'Update & Feature Member'}
+                {uploadingImage 
+                  ? 'Uploading Image...' 
+                  : selectedMemberId === 'new' 
+                    ? 'Create & Feature Member' 
+                    : 'Update & Feature Member'}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors duration-300 font-inter font-medium"
+                disabled={uploadingImage}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors duration-300 font-inter font-medium disabled:opacity-50"
               >
                 Cancel
               </button>

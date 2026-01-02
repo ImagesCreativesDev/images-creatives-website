@@ -19,36 +19,75 @@ You'll be prompted to log in with your Sanity account.
 
 The error indicates your Sanity API token doesn't have delete permissions. Here's how to fix it:
 
+### Quick Checklist
+- [ ] Create new API token in Sanity with **Editor** permissions
+- [ ] Copy the new token (starts with `skey_`)
+- [ ] Update `SANITY_API_TOKEN` in Vercel environment variables
+- [ ] Redeploy your Vercel project
+- [ ] Test deletion in admin portal
+
 ### Step 1: Access Sanity Dashboard
 1. Go to [sanity.io/manage](https://sanity.io/manage)
 2. Log in with your Sanity account
 3. Select your project (the one matching your `NEXT_PUBLIC_SANITY_PROJECT_ID`)
 
-### Step 2: Create/Update API Token with Delete Permissions
+### Step 2: Create New API Token with Delete Permissions
+
+Since you cannot edit the existing token, you'll need to create a new one:
+
 1. In your Sanity project dashboard, go to **API** → **Tokens**
-2. Find your current token (the one in `SANITY_API_TOKEN` environment variable)
-3. **Either:**
-   - **Update existing token:** Click on it → Edit → Ensure **Editor** permissions are selected
-   - **Create new token:** Click "Add API token" → Name it (e.g., "ImageCreativesWebsiteAdmin")
+2. Click the **"Add API token"** button (usually at the top right or bottom of the tokens list)
+3. **Token Name:** Enter `ImageCreativesWebsiteAdmin` (or any descriptive name)
+4. **Permission:** Select **"Editor"** (NOT "Viewer" or "Editor (restricted)")
+   - ⚠️ **Critical:** Only "Editor" or "Administrator" permissions allow delete operations
+   - "Viewer" = read-only (won't work for delete)
+   - "Editor (restricted)" = limited write (may not allow delete)
+5. **Project scope:** 
+   - Select **"Select Projects"** 
+   - Choose your project from the list (the one matching your `NEXT_PUBLIC_SANITY_PROJECT_ID`)
+6. **Dataset access:** 
+   - Select your dataset (usually **"production"** or the name in `NEXT_PUBLIC_SANITY_DATASET`)
+7. Click **"Save"** or **"Create token"**
+8. **IMPORTANT:** Copy the token immediately (it starts with `skey_`)
+   - ⚠️ You won't be able to see it again after closing the dialog!
+   - The token will look like: `skey_abc123xyz...`
 
-### Step 3: Set Token Permissions
-When creating/editing the token, make sure these permissions are set:
-- ✅ **Editor** (this includes delete permissions)
-- ✅ **Project scope:** Select your project
-- ✅ **Dataset access:** Production (or your dataset name)
+### Step 4: Update Environment Variables in Vercel
 
-**Important:** The token must have **Editor** or **Administrator** permissions to delete documents. **Viewer** or **Editor (restricted)** won't work.
+**Critical:** You must update the environment variable in Vercel for the changes to take effect on your live site.
 
-### Step 4: Update Environment Variables
-1. **Copy the new token** (starts with `skey_`)
-2. **In Vercel:**
-   - Go to your project → Settings → Environment Variables
-   - Find `SANITY_API_TOKEN`
-   - Update the value with your new token
-   - Click Save
-3. **Locally (optional):**
-   - Update `.env.local` with the new token
-   - `SANITY_API_TOKEN=skey_your_new_token_here`
+1. **Go to Vercel Dashboard:**
+   - Visit [vercel.com](https://vercel.com) and log in
+   - Select your project (likely "image-creatives-website" or similar)
+
+2. **Navigate to Environment Variables:**
+   - Click on the **"Settings"** tab at the top
+   - Scroll down to the **"Environment Variables"** section
+   - You'll see a list of all your environment variables
+
+3. **Update SANITY_API_TOKEN:**
+   - Find the row with **Key:** `SANITY_API_TOKEN`
+   - Click on the **Value** field (or the edit/pencil icon if available)
+   - **Delete the old token** and paste your new token (the one starting with `skey_`)
+   - Make sure the token is selected for the correct environments:
+     - ✅ **Production**
+     - ✅ **Preview** (optional but recommended)
+     - ✅ **Development** (optional)
+   - Click **"Save"** or press Enter
+
+4. **Verify the Update:**
+   - The value should now show your new token (partially masked)
+   - Double-check that it starts with `skey_`
+
+### Step 4b: Update Local Environment (Optional - for local testing)
+
+If you want to test locally:
+1. Create or edit `.env.local` in your project root
+2. Add or update:
+   ```bash
+   SANITY_API_TOKEN=skey_your_new_token_here
+   ```
+3. Restart your development server (`npm run dev`)
 
 ### Step 5: Redeploy
 1. In Vercel, go to Deployments

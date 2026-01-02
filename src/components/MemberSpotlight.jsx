@@ -36,16 +36,40 @@ export default function MemberSpotlight({ featuredMember }) {
 
   const member = featuredMember || mockMember
 
-  // Helper function to render description blocks
+  // Helper function to render description blocks or plain text
   const renderDescription = (description) => {
-    if (!description || !Array.isArray(description)) return null
-    return description.map((block, index) => (
-      <p key={index} className='text-gray-300 font-inter leading-relaxed mb-4'>
-        {block.children.map((child, childIndex) => (
-          <span key={childIndex}>{child.text}</span>
-        ))}
-      </p>
-    ))
+    if (!description) return null
+    
+    // If it's a string, render it directly
+    if (typeof description === 'string') {
+      // Split by newlines to create paragraphs
+      const paragraphs = description.split('\n').filter(p => p.trim())
+      return paragraphs.map((para, index) => (
+        <p key={index} className='text-gray-300 font-inter leading-relaxed mb-4'>
+          {para.trim()}
+        </p>
+      ))
+    }
+    
+    // If it's an array of blocks (portable text format)
+    if (Array.isArray(description)) {
+      return description.map((block, index) => {
+        // Handle block structure
+        if (block._type === 'block' && block.children) {
+          return (
+            <p key={index} className='text-gray-300 font-inter leading-relaxed mb-4'>
+              {block.children.map((child, childIndex) => (
+                <span key={childIndex}>{child.text}</span>
+              ))}
+            </p>
+          )
+        }
+        // Fallback for other array items
+        return null
+      }).filter(Boolean)
+    }
+    
+    return null
   }
 
   return (
@@ -64,21 +88,40 @@ export default function MemberSpotlight({ featuredMember }) {
           <div className='grid md:grid-cols-2 gap-0'>
             {/* Left Column - Image */}
             <div className='relative h-80 md:h-auto'>
-              {member.image ? (
-                <Image
-                  src={urlFor(member.image).width(600).height(800).url()}
-                  alt={member.name}
-                  width={600}
-                  height={800}
-                  className='w-full h-full object-cover'
-                />
-              ) : (
-                <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
-                  <div className='w-32 h-32 bg-gradient-flame rounded-full flex items-center justify-center text-white text-5xl font-poppins font-bold'>
-                    {member.name.split(' ').map(n => n[0]).join('')}
+              {(() => {
+                // Check if image exists and is a valid Sanity image object
+                const hasValidImage = member.image && 
+                  typeof member.image === 'object' && 
+                  member.image._type === 'image' &&
+                  member.image.asset
+                
+                if (hasValidImage) {
+                  try {
+                    const imageUrl = urlFor(member.image).width(600).height(800).url()
+                    return (
+                      <Image
+                        src={imageUrl}
+                        alt={member.name}
+                        width={600}
+                        height={800}
+                        className='w-full h-full object-cover'
+                      />
+                    )
+                  } catch (error) {
+                    console.error('Error generating image URL:', error, member.image)
+                    // Fall through to placeholder
+                  }
+                }
+                
+                // Fallback to placeholder if no valid image
+                return (
+                  <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
+                    <div className='w-32 h-32 bg-gradient-flame rounded-full flex items-center justify-center text-white text-5xl font-poppins font-bold'>
+                      {member.name.split(' ').map(n => n[0]).join('')}
+                    </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
             </div>
 
             {/* Right Column - Content */}
@@ -107,13 +150,23 @@ export default function MemberSpotlight({ featuredMember }) {
 
               {/* CTA Button */}
               <div className='mt-6'>
-                <Button 
-                  href={member.profileLink || '#profile'} 
-                  variant="flame"
-                  className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
-                >
-                  View This Photographer's Profile
-                </Button>
+                {member.slug?.current || member.slug ? (
+                  <Button 
+                    href={`/members/${member.slug?.current || member.slug}`} 
+                    variant="flame"
+                    className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                  >
+                    View This Photographer's Profile
+                  </Button>
+                ) : member.profileLink ? (
+                  <Button 
+                    href={member.profileLink} 
+                    variant="flame"
+                    className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                  >
+                    Visit External Profile
+                  </Button>
+                ) : null}
               </div>
             </div>
           </div>

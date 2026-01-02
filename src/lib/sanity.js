@@ -20,11 +20,25 @@ export async function getFeaturedMember() {
   const query = `*[_type == "member" && featured == true] | order(_createdAt desc) [0] {
     _id,
     name,
+    slug,
     businessName,
     role,
     bio,
     description,
-    image,
+    image {
+      _type,
+      asset -> {
+        _id,
+        _type,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      }
+    },
     profileLink,
     socialLinks
   }`
@@ -79,5 +93,74 @@ export async function getUpcomingEvents(limit = 10) {
   } catch (error) {
     console.error('Error fetching events:', error)
     return []
+  }
+}
+
+export async function getAllMembers() {
+  const query = `*[_type == "member"] | order(name asc) {
+    _id,
+    name,
+    slug,
+    businessName,
+    role,
+    bio,
+    image {
+      _type,
+      asset -> {
+        _id,
+        _type,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      }
+    },
+    featured
+  }`
+  
+  try {
+    return await client.fetch(query)
+  } catch (error) {
+    console.error('Error fetching all members:', error)
+    return []
+  }
+}
+
+export async function getMemberBySlug(slug) {
+  const query = `*[_type == "member" && slug.current == $slug][0] {
+    _id,
+    name,
+    slug,
+    businessName,
+    role,
+    bio,
+    description,
+    profileLink,
+    image {
+      _type,
+      asset -> {
+        _id,
+        _type,
+        url,
+        metadata {
+          dimensions {
+            width,
+            height
+          }
+        }
+      }
+    },
+    socialLinks,
+    featured
+  }`
+  
+  try {
+    return await client.fetch(query, { slug })
+  } catch (error) {
+    console.error('Error fetching member by slug:', error)
+    return null
   }
 }

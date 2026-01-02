@@ -6,7 +6,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const query = `*[_type == "member"] | order(_createdAt desc) {
+    const { slug } = req.query
+
+    if (!slug) {
+      return res.status(400).json({ message: 'Slug is required' })
+    }
+
+    const query = `*[_type == "member" && slug.current == $slug][0] {
       _id,
       name,
       slug,
@@ -29,16 +35,23 @@ export default async function handler(req, res) {
           }
         }
       },
+      socialLinks,
       featured
     }`
 
-    const members = await client.fetch(query)
+    const member = await client.fetch(query, { slug })
 
-    res.status(200).json({ 
-      members: members || []
-    })
+    if (!member) {
+      return res.status(404).json({ message: 'Member not found' })
+    }
+
+    res.status(200).json({ member })
   } catch (error) {
-    console.error('Error fetching members:', error)
-    res.status(500).json({ message: 'Error fetching members' })
+    console.error('Error fetching member by slug:', error)
+    res.status(500).json({ 
+      message: 'Error fetching member',
+      error: error.message || 'Unknown error'
+    })
   }
 }
+

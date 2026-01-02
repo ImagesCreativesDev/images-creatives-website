@@ -6,15 +6,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const query = `*[_type == "member"] | order(_createdAt desc) {
+    const query = `*[_type == "member"] | order(name asc) {
       _id,
       name,
       slug,
       businessName,
       role,
       bio,
-      description,
-      profileLink,
       image {
         _type,
         asset -> {
@@ -38,7 +36,11 @@ export default async function handler(req, res) {
       members: members || []
     })
   } catch (error) {
-    console.error('Error fetching members:', error)
-    res.status(500).json({ message: 'Error fetching members' })
+    console.error('Error fetching all members:', error)
+    res.status(500).json({ 
+      message: 'Error fetching members',
+      error: error.message || 'Unknown error'
+    })
   }
 }
+

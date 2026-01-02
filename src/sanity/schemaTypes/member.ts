@@ -12,6 +12,17 @@ export default defineType({
       validation: (Rule) => Rule.required().max(100),
     }),
     defineField({
+      name: 'slug',
+      title: 'Slug',
+      type: 'slug',
+      options: {
+        source: 'name',
+        maxLength: 96,
+      },
+      validation: (Rule) => Rule.required(),
+      description: 'URL-friendly identifier for the member profile page',
+    }),
+    defineField({
       name: 'role',
       title: 'Role',
       type: 'string',

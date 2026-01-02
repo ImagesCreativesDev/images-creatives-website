@@ -22,6 +22,32 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Name and bio are required' })
     }
 
+    // Generate slug from name if not provided
+    let slugValue = req.body.slug
+    if (!slugValue) {
+      slugValue = name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+    }
+
+    // Check if slug already exists
+    const existingMember = await client.fetch(
+      '*[_type == "member" && slug.current == $slug][0] { _id }',
+      { slug: slugValue }
+    )
+
+    if (existingMember) {
+      // Append number if slug exists
+      let counter = 1
+      let uniqueSlug = `${slugValue}-${counter}`
+      while (await client.fetch('*[_type == "member" && slug.current == $slug][0] { _id }', { slug: uniqueSlug })) {
+        counter++
+        uniqueSlug = `${slugValue}-${counter}`
+      }
+      slugValue = uniqueSlug
+    }
+
     // If this member is being featured, unfeature all others first
     if (featured) {
       const featuredMembers = await client.fetch(
@@ -37,13 +63,24 @@ export default async function handler(req, res) {
     const member = {
       _type: 'member',
       name,
+      slug: {
+        _type: 'slug',
+        current: slugValue
+      },
       businessName: businessName || '',
       role: role || '',
       bio,
       description: description || '',
       profileLink: profileLink || '',
-      image: image || '',
       featured: featured || false
+    }
+
+    // Handle image - it should be a Sanity image object or null
+    if (image && typeof image === 'object' && image._type === 'image') {
+      member.image = image
+    } else if (image) {
+      // Legacy support: if it's a string URL, we'll skip it (should use file upload now)
+      // member.image = null
     }
 
     const result = await client.create(member)
