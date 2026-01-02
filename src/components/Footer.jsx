@@ -46,9 +46,10 @@ export default function Footer() {
             <h4 className='text-lg font-montserrat font-semibold text-white mb-4'>Quick Links</h4>
             <ul className='space-y-3'>
               <li><a href='/events' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Events</a></li>
+              <li><a href='/members' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Members</a></li>
               <li><a href='/membership' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Membership</a></li>
               <li><a href='/free-meeting' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Free Meeting</a></li>
-              <li><a href='#' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Home</a></li>
+              <li><a href='/' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Home</a></li>
             </ul>
           </div>
         </div>
