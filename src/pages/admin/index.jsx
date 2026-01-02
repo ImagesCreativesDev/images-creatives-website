@@ -313,15 +313,19 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
         body: JSON.stringify({ _id: eventId })
       })
 
+      const data = await response.json()
+
       if (response.ok) {
         onMessage('Event deleted successfully!')
         onUpdate()
       } else {
-        onMessage('Error deleting event', 'error')
+        const errorMsg = data.message || data.error || 'Error deleting event'
+        console.error('Delete API Error:', data)
+        onMessage(errorMsg, 'error')
       }
     } catch (error) {
       console.error('Error:', error)
-      onMessage('Error deleting event', 'error')
+      onMessage(`Error deleting event: ${error.message}`, 'error')
     }
   }
 
