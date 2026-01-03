@@ -189,7 +189,7 @@ export default function MemberPage({ member }) {
                       variant="flame"
                       className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
                     >
-                      Visit Profile
+                      Visit Member Website
                     </Button>
                   </div>
                 )}

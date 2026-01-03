@@ -89,35 +89,39 @@ export default function MemberSpotlight({ featuredMember }) {
             {/* Left Column - Image */}
             <div className='relative h-80 md:h-auto'>
               {(() => {
-                // Check if image exists and is a valid Sanity image object
-                const hasValidImage = member.image && 
-                  typeof member.image === 'object' && 
-                  member.image._type === 'image' &&
-                  member.image.asset
-                
-                if (hasValidImage) {
+                // Helper to get image URL
+                const getImageUrl = () => {
+                  if (!member.image || typeof member.image !== 'object' || member.image._type !== 'image' || !member.image.asset) {
+                    return null
+                  }
                   try {
-                    const imageUrl = urlFor(member.image).width(600).height(800).url()
-                    return (
-                      <Image
-                        src={imageUrl}
-                        alt={member.name}
-                        width={600}
-                        height={800}
-                        className='w-full h-full object-cover'
-                      />
-                    )
+                    return urlFor(member.image).width(600).height(800).url()
                   } catch (error) {
                     console.error('Error generating image URL:', error, member.image)
-                    // Fall through to placeholder
+                    return null
                   }
+                }
+
+                const imageUrl = getImageUrl()
+                
+                if (imageUrl) {
+                  return (
+                    <Image
+                      src={imageUrl}
+                      alt={member.name || 'Member photo'}
+                      width={600}
+                      height={800}
+                      className='w-full h-full object-cover'
+                      unoptimized
+                    />
+                  )
                 }
                 
                 // Fallback to placeholder if no valid image
                 return (
                   <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
                     <div className='w-32 h-32 bg-gradient-flame rounded-full flex items-center justify-center text-white text-5xl font-poppins font-bold'>
-                      {member.name.split(' ').map(n => n[0]).join('')}
+                      {member.name ? member.name.split(' ').map(n => n[0]).join('') : '?'}
                     </div>
                   </div>
                 )
@@ -138,11 +142,8 @@ export default function MemberSpotlight({ featuredMember }) {
                 {member.name}
               </h3>
 
-              {/* Description */}
-              {member.description && renderDescription(member.description)}
-              
-              {/* Fallback Bio */}
-              {!member.description && member.bio && (
+              {/* Short Bio (for homepage) */}
+              {member.bio && (
                 <p className='text-gray-300 font-inter leading-relaxed mb-6'>
                   {member.bio}
                 </p>
@@ -150,23 +151,31 @@ export default function MemberSpotlight({ featuredMember }) {
 
               {/* CTA Button */}
               <div className='mt-6'>
-                {member.slug?.current || member.slug ? (
-                  <Button 
-                    href={`/members/${member.slug?.current || member.slug}`} 
-                    variant="flame"
-                    className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
-                  >
-                    View This Photographer's Profile
-                  </Button>
-                ) : member.profileLink ? (
-                  <Button 
-                    href={member.profileLink} 
-                    variant="flame"
-                    className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
-                  >
-                    Visit External Profile
-                  </Button>
-                ) : null}
+                {(() => {
+                  const slug = member.slug?.current || member.slug
+                  if (slug) {
+                    return (
+                      <Button 
+                        href={`/members/${slug}`} 
+                        variant="flame"
+                        className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                      >
+                        View This Photographer's Profile
+                      </Button>
+                    )
+                  } else if (member.profileLink) {
+                    return (
+                      <Button 
+                        href={member.profileLink} 
+                        variant="flame"
+                        className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                      >
+                        Visit External Profile
+                      </Button>
+                    )
+                  }
+                  return null
+                })()}
               </div>
             </div>
           </div>
