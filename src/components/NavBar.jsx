@@ -1,9 +1,16 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function NavBar() {
   const [isOpen, setIsOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   
   return (
     <nav className='bg-[#433F59] backdrop-blur-sm shadow-brand sticky top-0 z-50 border-b border-white/10'>
@@ -58,6 +65,13 @@ export default function NavBar() {
             <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-flame transition-all duration-300 group-hover:w-full'></span>
           </Link>
           <Link 
+            href='/upload' 
+            className='text-white font-inter font-medium hover:text-ember transition-colors duration-300 relative group'
+          >
+            Submit Photo
+            <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-flame transition-all duration-300 group-hover:w-full'></span>
+          </Link>
+          <Link 
             href='/' 
             className='text-white font-inter font-medium hover:text-ember transition-colors duration-300 relative group'
           >
@@ -85,7 +99,7 @@ export default function NavBar() {
             aria-label='Toggle menu'
           >
             <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-              {isOpen ? (
+              {mounted && isOpen ? (
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
               ) : (
                 <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M4 6h16M4 12h16M4 18h16' />
@@ -95,7 +109,7 @@ export default function NavBar() {
         </div>
       </div>
       
-      {isOpen && (
+      {mounted && isOpen && (
         <div className='md:hidden bg-[#433F59] border-t border-white/10 shadow-lg'>
           <div className='px-4 py-4 space-y-3'>
             <Link 
@@ -125,6 +139,13 @@ export default function NavBar() {
               onClick={() => setIsOpen(false)}
             >
               Free Meeting
+            </Link>
+            <Link 
+              href='/upload' 
+              className='block text-white font-inter font-medium hover:text-ember transition-colors duration-300 py-2'
+              onClick={() => setIsOpen(false)}
+            >
+              Submit Photo
             </Link>
             <Link 
               href='/' 

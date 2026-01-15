@@ -195,6 +195,26 @@ export default function AdminDashboard() {
           </button>
         </div>
 
+        {/* Competition Navigation */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <a
+            href="/competition/judge"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 bg-cool text-white font-inter font-medium rounded-lg hover:bg-night transition-colors duration-300"
+          >
+            Judging Page
+          </a>
+          <a
+            href="/competition/results"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-3 bg-cool text-white font-inter font-medium rounded-lg hover:bg-night transition-colors duration-300"
+          >
+            Results Page
+          </a>
+        </div>
+
         {/* Message Display */}
         {message && (
           <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
