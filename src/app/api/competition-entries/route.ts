@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File | null
     const title = formData.get('title') as string | null
     const photographer = formData.get('photographer') as string | null
+    const termsAccepted = formData.get('termsAccepted') === 'true'
 
     // Validate required fields
     if (!file) {
@@ -41,6 +42,31 @@ export async function POST(request: Request) {
     if (!title || !photographer) {
       return NextResponse.json(
         { error: 'Title and photographer are required' },
+        { status: 400 }
+      )
+    }
+
+    if (!termsAccepted) {
+      return NextResponse.json(
+        { error: 'Terms must be accepted to submit an entry' },
+        { status: 400 }
+      )
+    }
+
+    // File type validation
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
+    if (!allowedTypes.includes(file.type)) {
+      return NextResponse.json(
+        { error: 'Invalid file type. Only JPEG and PNG images are allowed.' },
+        { status: 400 }
+      )
+    }
+
+    // File size validation (10MB max)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        { error: 'File size exceeds 10MB limit. Please compress or resize your image.' },
         { status: 400 }
       )
     }
@@ -58,11 +84,15 @@ export async function POST(request: Request) {
     }
 
     // Step 2: Create competition entry document
+    // Note: termsVersion should match the date on the Terms of Service page
     const document = await client.create({
       _type: 'competitionEntry',
       title,
       photographer,
       uploadDate: new Date().toISOString(),
+      termsAccepted: true,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion: '2026-01-15', // Must be kept in sync with Terms of Service page date
       photo: {
         _type: 'image',
         asset: {

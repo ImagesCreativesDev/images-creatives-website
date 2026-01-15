@@ -10,6 +10,7 @@ export default function UploadPage() {
   const [photographer, setPhotographer] = useState('')
   const [title, setTitle] = useState('')
   const [file, setFile] = useState<File | null>(null)
+  const [termsAccepted, setTermsAccepted] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
@@ -35,11 +36,18 @@ export default function UploadPage() {
       return
     }
 
+    if (!termsAccepted) {
+      setStatus('error')
+      setErrorMessage('You must accept the terms to submit your entry')
+      return
+    }
+
     // Create FormData
     const formData = new FormData()
     formData.append('file', file)
     formData.append('title', title)
     formData.append('photographer', photographer)
+    formData.append('termsAccepted', 'true')
 
     // Set uploading status
     setStatus('uploading')
@@ -69,11 +77,62 @@ export default function UploadPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
-    if (selectedFile) {
-      setFile(selectedFile)
-      setErrorMessage('')
+    if (!selectedFile) return
+
+    setErrorMessage('')
+
+    // File type validation
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setErrorMessage('Please upload a JPEG or PNG image only. RAW files and other formats are not accepted.')
+      setFile(null)
+      // Reset the input
+      e.target.value = ''
+      return
+    }
+
+    // File size validation (10MB max)
+    const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+    if (selectedFile.size > maxSize) {
+      setErrorMessage('Image file is too large. Maximum file size is 10MB. Please compress or resize your image.')
+      setFile(null)
+      e.target.value = ''
+      return
+    }
+
+    // Image dimension validation
+    try {
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(selectedFile)
+      
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        const longEdge = Math.max(img.width, img.height)
+        const maxDimension = 4000
+        
+        if (longEdge > maxDimension) {
+          setErrorMessage(`Image dimensions are too large. Maximum long edge is ${maxDimension}px. Your image is ${longEdge}px. Please resize your image.`)
+          setFile(null)
+          e.target.value = ''
+        } else {
+          setFile(selectedFile)
+        }
+      }
+      
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        setErrorMessage('Invalid image file. Please select a valid JPEG or PNG image.')
+        setFile(null)
+        e.target.value = ''
+      }
+      
+      img.src = objectUrl
+    } catch (error) {
+      setErrorMessage('Error reading image file. Please try again.')
+      setFile(null)
+      e.target.value = ''
     }
   }
 
@@ -82,6 +141,7 @@ export default function UploadPage() {
     setPhotographer('')
     setTitle('')
     setFile(null)
+    setTermsAccepted(false)
     setErrorMessage('')
   }
 
@@ -110,7 +170,10 @@ export default function UploadPage() {
               <h1 className="text-4xl md:text-5xl font-poppins font-bold text-gray-800 mb-4">
                 Thank You!
               </h1>
-              <p className="text-xl text-gray-600 font-inter mb-8">
+              <p className="text-xl text-gray-600 font-inter mb-4">
+                Submission received. Your image will only be used as described in our Image License.
+              </p>
+              <p className="text-lg text-gray-500 font-inter mb-8">
                 Your competition entry has been submitted successfully.
               </p>
               <button
@@ -193,6 +256,19 @@ export default function UploadPage() {
               </div>
 
               <div>
+                {/* Image Requirements Info Box */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4">
+                  <h3 className="text-gray-800 font-inter font-semibold mb-2">
+                    Image Requirements
+                  </h3>
+                  <ul className="text-sm text-gray-700 font-inter space-y-1 list-disc list-inside">
+                    <li><strong>Accepted formats:</strong> JPEG, PNG only</li>
+                    <li><strong>Maximum file size:</strong> 10MB</li>
+                    <li><strong>Maximum dimension:</strong> 4000px (long edge)</li>
+                    <li><strong>Not accepted:</strong> RAW files (CR2, NEF, ARW, etc.), TIFF, HEIC, or other formats</li>
+                  </ul>
+                </div>
+
                 <label
                   htmlFor="file"
                   className="block text-gray-700 font-inter font-medium mb-2"
@@ -202,7 +278,7 @@ export default function UploadPage() {
                 <input
                   type="file"
                   id="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/jpg,image/png"
                   onChange={handleFileChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-flame file:text-white hover:file:bg-ember focus:outline-none focus:ring-2 focus:ring-flame focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
                   required
@@ -210,9 +286,33 @@ export default function UploadPage() {
                 />
                 {file && (
                   <p className="mt-2 text-sm text-gray-600 font-inter">
-                    Selected: {file.name}
+                    Selected: {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
+              </div>
+
+              <div>
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="checkbox"
+                    id="termsAccepted"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 w-5 h-5 text-flame border-gray-300 rounded focus:ring-flame focus:ring-2"
+                    disabled={status === 'uploading'}
+                  />
+                  <div className="flex-1">
+                    <label
+                      htmlFor="termsAccepted"
+                      className="text-gray-700 font-inter leading-relaxed cursor-pointer"
+                    >
+                      I confirm that I am the copyright holder of this image and grant Image Creatives permission to display it for competition presentation and nonprofit promotion, as described in the Terms of Service.
+                    </label>
+                    <p className="mt-2 text-sm text-gray-500 font-inter">
+                      By submitting, you retain full copyright. Images are never sold or used commercially.
+                    </p>
+                  </div>
+                </div>
               </div>
 
               {status === 'error' && errorMessage && (
@@ -223,7 +323,7 @@ export default function UploadPage() {
 
               <button
                 type="submit"
-                disabled={status === 'uploading'}
+                disabled={status === 'uploading' || !termsAccepted}
                 className="btn-brand w-full text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               >
                 {status === 'uploading' ? (
@@ -255,6 +355,43 @@ export default function UploadPage() {
                 )}
               </button>
             </form>
+
+            {/* Image Rights Info Box */}
+            <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-poppins font-semibold text-gray-800 mb-4">
+                Image Rights
+              </h3>
+              <div className="space-y-4 text-gray-700 font-inter leading-relaxed">
+                <p className="font-semibold">
+                  You keep your copyright. Always.
+                </p>
+                <div>
+                  <p className="font-semibold mb-2">By entering this competition:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>You own your image</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold mb-2">We use submitted images only for:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Competition judging and presentation</li>
+                    <li>Showing results and winners</li>
+                    <li>Promoting Image Creatives as a nonprofit photography group</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold mb-2">We will never:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Sell your images</li>
+                    <li>License them to anyone else</li>
+                    <li>Use them for commercial purposes</li>
+                  </ul>
+                </div>
+                <p>
+                  If we ever want to use an image outside of this scope, we'll ask first.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </main>

@@ -50,6 +50,25 @@ export default defineType({
       // Optional: Validation to keep scores within a range
       validation: (Rule) => Rule.min(0).max(100), 
     }),
+    defineField({
+      name: 'termsAccepted',
+      title: 'Terms Accepted',
+      type: 'boolean',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'termsAcceptedAt',
+      title: 'Terms Accepted At',
+      type: 'datetime',
+      validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'termsVersion',
+      title: 'Terms Version',
+      type: 'string',
+      description: 'Version string matching Terms of Service page date (e.g., "2026-01-15")',
+      validation: (Rule) => Rule.required(),
+    }),
   ],
   preview: {
     select: {
