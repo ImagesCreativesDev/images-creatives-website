@@ -83,12 +83,29 @@ export async function POST(request: Request) {
       )
     }
 
+    // Generate slug from title (matching Sanity's slug generation)
+    const generateSlug = (text: string): string => {
+      return text
+        .toLowerCase()
+        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+        .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+        .substring(0, 96) // Max length 96
+    }
+
+    const slugValue = generateSlug(title)
+
     // Step 2: Create competition entry document
     // Note: termsVersion should match the date on the Terms of Service page
     const document = await client.create({
       _type: 'competitionEntry',
       title,
       photographer,
+      slug: {
+        _type: 'slug',
+        current: slugValue,
+      },
       uploadDate: new Date().toISOString(),
       termsAccepted: true,
       termsAcceptedAt: new Date().toISOString(),
@@ -111,10 +128,13 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     console.error('Error creating competition entry:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error details:', { errorMessage, errorStack })
     return NextResponse.json(
       {
         error: 'Error creating competition entry',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        details: errorMessage,
       },
       { status: 500 }
     )
