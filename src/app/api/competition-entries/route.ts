@@ -130,11 +130,35 @@ export async function POST(request: Request) {
     console.error('Error creating competition entry:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : undefined
-    console.error('Error details:', { errorMessage, errorStack })
+    
+    // Log full error details for debugging
+    if (error instanceof Error) {
+      console.error('Error name:', error.name)
+      console.error('Error message:', error.message)
+      if (errorStack) {
+        console.error('Error stack:', errorStack)
+      }
+    }
+    
+    // Check if it's a Sanity API error
+    if (error && typeof error === 'object' && 'responseBody' in error) {
+      const sanityError = error as { responseBody?: { message?: string; error?: { description?: string } } }
+      console.error('Sanity API error:', JSON.stringify(sanityError.responseBody, null, 2))
+      return NextResponse.json(
+        {
+          error: 'Error creating competition entry',
+          details: sanityError.responseBody?.message || sanityError.responseBody?.error?.description || errorMessage,
+          type: 'sanity_error',
+        },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       {
         error: 'Error creating competition entry',
         details: errorMessage,
+        type: 'unknown_error',
       },
       { status: 500 }
     )
