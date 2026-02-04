@@ -129,14 +129,14 @@ export default function EventCard({ event }) {
           {formatDescription(event.description)}
         </p>
 
-        {/* CTA Button */}
+        {/* CTA Button - link to event detail page */}
         <div className='text-center'>
           <Button 
-            href={event.registrationLink || '#register'} 
+            href={event.slug?.current ? `/events/${event.slug.current}` : (event.slug ? `/events/${event.slug}` : '/events')} 
             variant="flame"
             className="w-full"
           >
-            {event.buttonText || 'View Details'}
+            View Details
           </Button>
         </div>
       </div>

@@ -18,10 +18,11 @@ Vercel will warn you that variables starting with `NEXT_PUBLIC_` will be exposed
 
 ### ❌ NOT Safe to Expose (NO NEXT_PUBLIC_ prefix):
 
-**3. `SANITY_API_TOKEN`**
+**3. `SANITY_API_WRITE_TOKEN`** (preferred) or **`SANITY_API_TOKEN`** (legacy)
 - ❌ **MUST NOT have NEXT_PUBLIC_ prefix** - Keep it server-side only!
-- **Purpose:** Authenticates write operations to Sanity
+- **Purpose:** Authenticates write operations to Sanity (events, members, assets, etc.)
 - **Why it's dangerous:** This token can modify/delete your content! Never expose it.
+- **Use one name everywhere:** Prefer `SANITY_API_WRITE_TOKEN` in `.env.local` and Vercel; the code accepts both.
 
 **4. `ADMIN_PASSWORD`**
 - ❌ **MUST NOT have NEXT_PUBLIC_ prefix** - Keep it server-side only!
@@ -37,7 +38,7 @@ When adding to Vercel:
 - `NEXT_PUBLIC_SANITY_DATASET`
 
 ✅ **Safe to add, NO browser warning (these MUST NOT have NEXT_PUBLIC_):**
-- `SANITY_API_TOKEN` 
+- `SANITY_API_WRITE_TOKEN` (or legacy `SANITY_API_TOKEN`)
 - `ADMIN_PASSWORD`
 
 ## The Rule of Thumb

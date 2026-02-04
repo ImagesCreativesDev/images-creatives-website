@@ -252,6 +252,7 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
   const [editingEvent, setEditingEvent] = useState(null)
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
     description: '',
     eventDate: '',
     location: '',
@@ -263,12 +264,22 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
     capacity: '',
     ticketsSold: '',
     buttonText: '',
-    registrationLink: ''
+    registrationLink: '',
+    image: null
   })
+  const [eventImageFile, setEventImageFile] = useState(null)
+  const [eventImagePreview, setEventImagePreview] = useState(null)
+  const [uploadingEventImage, setUploadingEventImage] = useState(false)
+
+  const generateEventSlug = (title) => {
+    if (!title) return ''
+    return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  }
 
   const resetForm = () => {
     setFormData({
       title: '',
+      slug: '',
       description: '',
       eventDate: '',
       location: '',
@@ -280,8 +291,11 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
       capacity: '',
       ticketsSold: '',
       buttonText: '',
-      registrationLink: ''
+      registrationLink: '',
+      image: null
     })
+    setEventImageFile(null)
+    setEventImagePreview(null)
     setEditingEvent(null)
     setShowForm(false)
   }
@@ -289,6 +303,7 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
   const handleEdit = (event) => {
     setFormData({
       title: event.title || '',
+      slug: event.slug?.current || event.slug || '',
       description: event.description || '',
       eventDate: event.eventDate ? new Date(event.eventDate).toISOString().slice(0, 16) : '',
       location: event.location || '',
@@ -300,40 +315,69 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
       capacity: event.capacity || '',
       ticketsSold: event.ticketsSold || '',
       buttonText: event.buttonText || '',
-      registrationLink: event.registrationLink || ''
+      registrationLink: event.registrationLink || '',
+      image: event.image || null
     })
+    setEventImageFile(null)
+    setEventImagePreview(null)
     setEditingEvent(event)
     setShowForm(true)
   }
 
+  const uploadEventImageToSanity = async (file) => {
+    const reader = new FileReader()
+    return new Promise((resolve, reject) => {
+      reader.onloadend = async () => {
+        try {
+          const response = await fetch('/api/members/upload-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageData: reader.result, filename: file.name || 'event-image.jpg' })
+          })
+          const data = await response.json()
+          if (response.ok) resolve(data.image)
+          else reject(new Error(data.message || 'Failed to upload image'))
+        } catch (e) { reject(e) }
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
+    setUploadingEventImage(true)
     try {
+      let imageData = formData.image
+      if (eventImageFile) {
+        imageData = await uploadEventImageToSanity(eventImageFile)
+      }
       const url = editingEvent ? '/api/events/update' : '/api/events/create'
       const method = editingEvent ? 'PUT' : 'POST'
-      
+      const slug = formData.slug || generateEventSlug(formData.title)
       const response = await fetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
+          slug,
+          image: imageData,
           _id: editingEvent?._id
         })
       })
-
+      const data = await response.json().catch(() => ({}))
       if (response.ok) {
         onMessage(editingEvent ? 'Event updated successfully!' : 'Event created successfully!')
         resetForm()
         onUpdate()
       } else {
-        onMessage('Error saving event', 'error')
+        onMessage(data.message || data.error || 'Error saving event', 'error')
       }
     } catch (error) {
       console.error('Error:', error)
       onMessage('Error saving event', 'error')
+    } finally {
+      setUploadingEventImage(false)
     }
   }
 
@@ -475,6 +519,65 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
 
             <div>
               <label className="block text-gray-700 font-inter font-medium mb-2">
+                URL slug (event detail page)
+              </label>
+              <input
+                type="text"
+                value={formData.slug}
+                onChange={(e) => setFormData({...formData, slug: e.target.value})}
+                onBlur={(e) => {
+                  if (!e.target.value && formData.title) {
+                    setFormData(prev => ({ ...prev, slug: generateEventSlug(formData.title) }))
+                  }
+                }}
+                placeholder="Auto-generated from title (e.g. monthly-meeting)"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent bg-gray-50"
+              />
+              <p className="text-xs text-gray-500 mt-1 font-inter">
+                Detail page: /events/{formData.slug || generateEventSlug(formData.title) || 'slug'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-inter font-medium mb-2">
+                Event image (for detail page)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0]
+                  if (file) {
+                    if (!file.type.startsWith('image/')) { onMessage('Please select a valid image file', 'error'); return }
+                    if (file.size > 10 * 1024 * 1024) { onMessage('Image must be under 10MB', 'error'); return }
+                    setEventImageFile(file)
+                    const reader = new FileReader()
+                    reader.onloadend = () => setEventImagePreview(reader.result)
+                    reader.readAsDataURL(file)
+                  }
+                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
+              />
+              {eventImagePreview && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-600 mb-2">New image preview:</p>
+                  <img src={eventImagePreview} alt="Preview" className="w-32 h-32 object-cover rounded-lg border border-gray-300" />
+                </div>
+              )}
+              {formData.image && !eventImageFile && (
+                <div className="mt-3">
+                  <p className="text-sm text-gray-600 mb-2">Current image:</p>
+                  {getImageUrl(formData.image) ? (
+                    <img src={getImageUrl(formData.image)} alt="Current" className="w-32 h-32 object-cover rounded-lg border border-gray-300" />
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">Image set (upload new file to replace)</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-gray-700 font-inter font-medium mb-2">
                 Description *
               </label>
               <textarea
@@ -601,13 +704,13 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
               
               <div>
                 <label className="block text-gray-700 font-inter font-medium mb-2">
-                  Registration Link
+                  Registration Link (optional)
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   value={formData.registrationLink}
                   onChange={(e) => setFormData({...formData, registrationLink: e.target.value})}
-                  placeholder="https://..."
+                  placeholder="https://... (e.g. Stripe when ready)"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
                 />
               </div>
@@ -629,14 +732,16 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
             <div className="flex space-x-4 pt-4">
               <button
                 type="submit"
-                className="bg-flame text-white px-6 py-3 rounded-lg hover:bg-ember transition-colors duration-300 font-inter font-medium"
+                disabled={uploadingEventImage}
+                className="bg-flame text-white px-6 py-3 rounded-lg hover:bg-ember transition-colors duration-300 font-inter font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingEvent ? 'Update Event' : 'Create Event'}
+                {uploadingEventImage ? 'Uploading image...' : (editingEvent ? 'Update Event' : 'Create Event')}
               </button>
               <button
                 type="button"
                 onClick={resetForm}
-                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors duration-300 font-inter font-medium"
+                disabled={uploadingEventImage}
+                className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors duration-300 font-inter font-medium disabled:opacity-50"
               >
                 Cancel
               </button>

@@ -12,6 +12,16 @@ export default defineType({
       validation: (Rule) => Rule.required().max(100),
     }),
     defineField({
+      name: 'slug',
+      title: 'URL slug',
+      type: 'slug',
+      description: 'Used for the event detail page URL (e.g. /events/your-event-slug). Click Generate to create from title.',
+      options: {
+        source: 'title',
+        maxLength: 96,
+      },
+    }),
+    defineField({
       name: 'description',
       title: 'Description',
       type: 'text',

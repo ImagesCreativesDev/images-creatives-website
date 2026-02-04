@@ -1,12 +1,15 @@
 import { createClient } from '@sanity/client'
 import imageUrlBuilder from '@sanity/image-url'
 
+// Use SANITY_API_WRITE_TOKEN (same as .env.local and App Router APIs); fallback for legacy SANITY_API_TOKEN
+const writeToken = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN
+
 export const client = createClient({
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'your-project-id',
   dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
   useCdn: process.env.NODE_ENV === 'production',
-  apiVersion: '2024-01-01',
-  token: process.env.SANITY_API_TOKEN, // For write operations
+  apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-01-01',
+  token: writeToken, // Required for create/update/delete (events, members, assets)
 })
 
 const builder = imageUrlBuilder(client)
@@ -73,6 +76,7 @@ export async function getUpcomingEvents(limit = 10) {
   const query = `*[_type == "event"] | order(eventDate asc) [0...${limit}] {
     _id,
     title,
+    slug,
     description,
     eventDate,
     location,
@@ -93,6 +97,44 @@ export async function getUpcomingEvents(limit = 10) {
   } catch (error) {
     console.error('Error fetching events:', error)
     return []
+  }
+}
+
+export async function getEventBySlug(slug) {
+  const query = `*[_type == "event" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    description,
+    eventDate,
+    location,
+    image {
+      _type,
+      asset -> {
+        _id,
+        _type,
+        url,
+        metadata {
+          dimensions { width, height }
+        }
+      },
+      alt
+    },
+    registrationLink,
+    isVirtual,
+    headerColor,
+    headerText,
+    headerSubText,
+    price,
+    capacity,
+    ticketsSold,
+    buttonText
+  }`
+  try {
+    return await client.fetch(query, { slug })
+  } catch (error) {
+    console.error('Error fetching event by slug:', error)
+    return null
   }
 }
 

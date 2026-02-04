@@ -20,7 +20,9 @@ export default async function handler(req, res) {
       capacity,
       ticketsSold,
       buttonText,
-      registrationLink
+      registrationLink,
+      slug: slugInput,
+      image
     } = req.body
 
     // Validate required fields
@@ -41,7 +43,22 @@ export default async function handler(req, res) {
       capacity: capacity ? parseInt(capacity) : null,
       ticketsSold: ticketsSold ? parseInt(ticketsSold) : 0,
       buttonText: buttonText || 'View Details',
-      registrationLink: registrationLink || '#register'
+      registrationLink: registrationLink || ''
+    }
+
+    // Slug: use provided or generate from title
+    const slugValue = slugInput || title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '')
+    event.slug = { _type: 'slug', current: slugValue }
+
+    if (image !== undefined) {
+      if (image && typeof image === 'object' && image._type === 'image') {
+        event.image = image
+      } else {
+        event.image = null
+      }
     }
 
     const result = await client.patch(_id).set(event).commit()

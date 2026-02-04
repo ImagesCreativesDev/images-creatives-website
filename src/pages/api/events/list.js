@@ -9,9 +9,11 @@ export default async function handler(req, res) {
     const query = `*[_type == "event"] | order(eventDate asc) {
       _id,
       title,
+      slug,
       description,
       eventDate,
       location,
+      image,
       isVirtual,
       headerColor,
       headerText,

@@ -5,6 +5,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: 'Method not allowed' })
   }
 
+  const token = process.env.SANITY_API_WRITE_TOKEN || process.env.SANITY_API_TOKEN
+  if (!token) {
+    return res.status(500).json({
+      message: 'Server misconfiguration: SANITY_API_WRITE_TOKEN (or SANITY_API_TOKEN) is not set. Add it in .env.local and in your host (e.g. Vercel) environment.',
+    })
+  }
+
   try {
     const {
       name,

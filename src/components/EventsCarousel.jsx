@@ -135,14 +135,14 @@ export default function EventsCarousel({ events = [] }) {
                   {currentEvent.description}
                 </p>
 
-                {/* CTA Button */}
+                {/* CTA Button - link to event detail page */}
                 <div className='mb-8'>
                   <Button 
-                    href={currentEvent.registrationLink || '#register'} 
+                    href={currentEvent.slug?.current ? `/events/${currentEvent.slug.current}` : (currentEvent.slug ? `/events/${currentEvent.slug}` : '/events')} 
                     variant="flame"
                     className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
                   >
-                    Register Now
+                    More Information
                   </Button>
                 </div>
 
