@@ -355,15 +355,20 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
       const url = editingEvent ? '/api/events/update' : '/api/events/create'
       const method = editingEvent ? 'PUT' : 'POST'
       const slug = formData.slug || generateEventSlug(formData.title)
+      const payload = {
+        ...formData,
+        slug,
+        image: imageData,
+        _id: editingEvent?._id
+      }
+      // Convert datetime-local (user's local time) to ISO UTC before sending to API
+      if (payload.eventDate) {
+        payload.eventDate = new Date(payload.eventDate).toISOString()
+      }
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          slug,
-          image: imageData,
-          _id: editingEvent?._id
-        })
+        body: JSON.stringify(payload)
       })
       const data = await response.json().catch(() => ({}))
       if (response.ok) {
