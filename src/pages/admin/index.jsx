@@ -300,12 +300,19 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
     setShowForm(false)
   }
 
+  const toDatetimeLocal = (dateString) => {
+    if (!dateString) return ''
+    const d = new Date(dateString)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
   const handleEdit = (event) => {
     setFormData({
       title: event.title || '',
       slug: event.slug?.current || event.slug || '',
       description: event.description || '',
-      eventDate: event.eventDate ? new Date(event.eventDate).toISOString().slice(0, 16) : '',
+      eventDate: toDatetimeLocal(event.eventDate),
       location: event.location || '',
       isVirtual: event.isVirtual || false,
       headerColor: event.headerColor || 'blue',

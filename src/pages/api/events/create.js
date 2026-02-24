@@ -56,12 +56,17 @@ export default async function handler(req, res) {
       finalSlug = `${finalSlug}-${counter}`
     }
 
+    // Pass through full ISO strings as-is to avoid server (UTC) re-parsing timezone-agnostic strings
+    const eventDateStr = typeof eventDate === 'string' && eventDate.endsWith('Z')
+      ? eventDate
+      : new Date(eventDate).toISOString()
+
     const event = {
       _type: 'event',
       title,
       slug: { _type: 'slug', current: finalSlug },
       description,
-      eventDate: new Date(eventDate).toISOString(),
+      eventDate: eventDateStr,
       location,
       isVirtual: isVirtual || false,
       headerColor: headerColor || 'blue',

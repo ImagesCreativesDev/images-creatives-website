@@ -30,10 +30,15 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Missing required fields' })
     }
 
+    // Pass through full ISO strings as-is to avoid server (UTC) re-parsing timezone-agnostic strings
+    const eventDateStr = typeof eventDate === 'string' && eventDate.endsWith('Z')
+      ? eventDate
+      : new Date(eventDate).toISOString()
+
     const event = {
       title,
       description,
-      eventDate: new Date(eventDate).toISOString(),
+      eventDate: eventDateStr,
       location,
       isVirtual: isVirtual || false,
       headerColor: headerColor || 'blue',

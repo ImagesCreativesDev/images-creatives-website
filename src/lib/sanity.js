@@ -12,6 +12,15 @@ export const client = createClient({
   token: writeToken, // Required for create/update/delete (events, members, assets)
 })
 
+// Client that bypasses CDN - use for events so updates appear immediately (no stale cache)
+export const clientNoCdn = createClient({
+  projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID || 'your-project-id',
+  dataset: process.env.NEXT_PUBLIC_SANITY_DATASET || 'production',
+  useCdn: false,
+  apiVersion: process.env.NEXT_PUBLIC_SANITY_API_VERSION || '2024-01-01',
+  token: writeToken,
+})
+
 const builder = imageUrlBuilder(client)
 
 export function urlFor(source) {
@@ -93,7 +102,7 @@ export async function getUpcomingEvents(limit = 10) {
   }`
   
   try {
-    return await client.fetch(query)
+    return await clientNoCdn.fetch(query)
   } catch (error) {
     console.error('Error fetching events:', error)
     return []
@@ -131,7 +140,7 @@ export async function getEventBySlug(slug) {
     buttonText
   }`
   try {
-    return await client.fetch(query, { slug })
+    return await clientNoCdn.fetch(query, { slug })
   } catch (error) {
     console.error('Error fetching event by slug:', error)
     return null
