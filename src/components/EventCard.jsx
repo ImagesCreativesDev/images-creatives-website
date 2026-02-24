@@ -13,17 +13,20 @@ const headerColors = {
 export default function EventCard({ event }) {
   const formatDate = (dateString) => {
     const date = new Date(dateString)
+    const tz = 'America/New_York'
     const options = { 
       weekday: 'short', 
       month: 'long', 
       day: 'numeric', 
-      year: 'numeric' 
+      year: 'numeric',
+      timeZone: tz,
     }
     const dateStr = date.toLocaleDateString('en-US', options)
     const timeStr = date.toLocaleTimeString('en-US', { 
       hour: 'numeric', 
       minute: '2-digit',
-      hour12: true 
+      hour12: true,
+      timeZone: tz,
     })
     return `${dateStr} ${timeStr}`
   }

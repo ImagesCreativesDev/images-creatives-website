@@ -47,7 +47,8 @@ export default function EventsCarousel({ events = [] }) {
     return date.toLocaleDateString('en-US', { 
       month: 'long',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      timeZone: 'America/New_York',
     })
   }
 

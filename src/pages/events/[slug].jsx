@@ -28,17 +28,20 @@ export default function EventPage({ event }) {
   const eventSlug = event.slug?.current || event.slug
   const formatDate = (dateString) => {
     const date = new Date(dateString)
+    const tz = 'America/New_York'
     return {
       dateStr: date.toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
         year: 'numeric',
+        timeZone: tz,
       }),
       timeStr: date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
+        timeZone: tz,
       }),
     }
   }

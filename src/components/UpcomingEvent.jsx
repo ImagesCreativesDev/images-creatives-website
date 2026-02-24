@@ -18,14 +18,16 @@ export default function UpcomingEvent({ events = [] }) {
   // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString)
+    const tz = 'America/New_York'
     return {
-      day: date.getDate(),
-      month: date.toLocaleDateString('en-US', { month: 'short' }),
-      year: date.getFullYear(),
+      day: parseInt(date.toLocaleDateString('en-US', { timeZone: tz, day: 'numeric' }), 10),
+      month: date.toLocaleDateString('en-US', { timeZone: tz, month: 'short' }),
+      year: parseInt(date.toLocaleDateString('en-US', { timeZone: tz, year: 'numeric' }), 10),
       time: date.toLocaleTimeString('en-US', { 
         hour: 'numeric', 
         minute: '2-digit',
-        hour12: true 
+        hour12: true,
+        timeZone: tz,
       })
     }
   }
