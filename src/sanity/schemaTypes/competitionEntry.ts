@@ -26,6 +26,13 @@ export default defineType({
       },
     }),
     defineField({
+      name: 'description',
+      title: 'Description',
+      type: 'text',
+      rows: 3,
+      description: 'Optional description or notes about this entry',
+    }),
+    defineField({
       name: 'slug',
       title: 'Slug',
       type: 'slug',

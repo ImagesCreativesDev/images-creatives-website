@@ -25,7 +25,7 @@ export async function POST(request: Request) {
 
     // Parse JSON body
     const body = await request.json()
-    const { _id, score } = body
+    const { _id, score, description } = body
 
     // Validate required fields
     if (!_id) {
@@ -35,24 +35,35 @@ export async function POST(request: Request) {
       )
     }
 
-    if (score === undefined || score === null) {
+    if (score === undefined && (description === undefined || description === null)) {
       return NextResponse.json(
-        { error: 'score is required' },
+        { error: 'score or description is required' },
         { status: 400 }
       )
     }
 
-    // Update the score
-    await client.patch(_id).set({ score: Number(score) }).commit()
+    // Build patch object based on provided fields
+    const patch: Record<string, unknown> = {}
+    if (score !== undefined && score !== null) {
+      patch.score = Number(score)
+    }
+    if (description !== undefined) {
+      patch.description = description
+    }
 
-    // Revalidate the judging page
+    // Update the document
+    await client.patch(_id).set(patch).commit()
+
+    // Revalidate the judging and results pages
     revalidatePath('/competition/judge')
+    revalidatePath('/competition/results')
 
     return NextResponse.json(
       {
-        message: 'Score updated successfully',
+        message: 'Entry updated successfully',
         _id,
-        score: Number(score),
+        score: score !== undefined && score !== null ? Number(score) : undefined,
+        description,
       },
       { status: 200 }
     )

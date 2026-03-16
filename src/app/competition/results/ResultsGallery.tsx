@@ -9,6 +9,7 @@ interface Entry {
   photographer: string
   imageUrl: string
   score?: number
+  description?: string
 }
 
 interface ResultsGalleryProps {
@@ -97,6 +98,16 @@ export default function ResultsGallery({ scoredEntries, pendingEntries, highestS
                     <p className="text-sm font-inter text-gray-600">
                       by {entry.photographer}
                     </p>
+                    {entry.description && (
+                      <div className="mt-3">
+                        <p className="text-xs font-inter font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                          Judging Comments
+                        </p>
+                        <p className="text-sm font-inter text-gray-700 whitespace-pre-line">
+                          {entry.description}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )
@@ -141,6 +152,16 @@ export default function ResultsGallery({ scoredEntries, pendingEntries, highestS
                   <p className="text-sm font-inter text-gray-600">
                     by {entry.photographer}
                   </p>
+                  {entry.description && (
+                    <div className="mt-3">
+                      <p className="text-xs font-inter font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                        Judging Comments
+                      </p>
+                      <p className="text-sm font-inter text-gray-700 whitespace-pre-line">
+                        {entry.description}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

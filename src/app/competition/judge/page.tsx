@@ -16,6 +16,7 @@ interface CompetitionEntry {
   title: string
   imageUrl: string
   score?: number
+  description?: string
 }
 
 async function getCompetitionEntries(): Promise<CompetitionEntry[]> {
@@ -23,7 +24,8 @@ async function getCompetitionEntries(): Promise<CompetitionEntry[]> {
     _id,
     title,
     "imageUrl": photo.asset->url,
-    score
+    score,
+    description
   }`
 
   try {

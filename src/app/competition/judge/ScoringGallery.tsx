@@ -10,6 +10,7 @@ interface Entry {
   title: string
   imageUrl: string
   score?: number
+  description?: string
 }
 
 interface ScoringGalleryProps {
@@ -26,11 +27,20 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
       return acc
     }, {} as Record<string, number>)
   )
+  const [localComments, setLocalComments] = useState<Record<string, string>>(
+    entries.reduce((acc, entry) => {
+      if (entry.description) {
+        acc[entry._id] = entry.description
+      }
+      return acc
+    }, {} as Record<string, string>)
+  )
   const [fullscreenImage, setFullscreenImage] = useState<Entry | null>(null)
 
-  const handleScoreChange = async (_id: string, score: number) => {
+  const handleSave = async (_id: string, score: number, description: string) => {
     // Update local state immediately
     setLocalScores((prev) => ({ ...prev, [_id]: score }))
+    setLocalComments((prev) => ({ ...prev, [_id]: description }))
     setSavingStates((prev) => ({ ...prev, [_id]: 'saving' }))
 
     try {
@@ -39,7 +49,7 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ _id, score }),
+        body: JSON.stringify({ _id, score, description }),
       })
 
       if (response.ok) {
@@ -64,7 +74,8 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>, _id: string) => {
     const score = parseFloat(e.target.value)
     if (!isNaN(score)) {
-      handleScoreChange(_id, score)
+      const currentComment = localComments[_id] ?? ''
+      handleSave(_id, score, currentComment)
     }
   }
 
@@ -72,6 +83,13 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
     if (e.key === 'Enter') {
       e.currentTarget.blur()
     }
+  }
+
+  const handleCommentsBlur = async (e: React.FocusEvent<HTMLTextAreaElement>, _id: string, scoreFallback: number | undefined) => {
+    const description = e.target.value
+    setLocalComments((prev) => ({ ...prev, [_id]: description }))
+    const currentScore = localScores[_id] ?? scoreFallback ?? 0
+    await handleSave(_id, currentScore, description)
   }
 
   const handleImageClick = (entry: Entry) => {
@@ -158,68 +176,92 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
                   <h3 className="text-xl font-poppins font-semibold text-gray-800 mb-4">
                     {entry.title}
                   </h3>
-                  <div className="flex items-center gap-3">
-                    <label
-                      htmlFor={`score-${entry._id}`}
-                      className="text-base font-inter font-medium text-gray-700 whitespace-nowrap"
-                    >
-                      Score:
-                    </label>
-                    <input
-                      id={`score-${entry._id}`}
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      value={currentScore}
-                      onChange={(e) => {
-                        const value = e.target.value
-                        setLocalScores((prev) => ({ ...prev, [entry._id]: value === '' ? 0 : parseFloat(value) }))
-                      }}
-                      onBlur={(e) => handleBlur(e, entry._id)}
-                      onKeyDown={(e) => handleKeyDown(e, entry._id)}
-                      className="flex-1 max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent text-lg"
-                      placeholder="0-100"
-                      disabled={savingState === 'saving'}
-                    />
-                    <div className="w-8 h-8 flex items-center justify-center">
-                      {savingState === 'saving' && (
-                        <svg
-                          className="animate-spin h-5 w-5 text-gray-400"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3">
+                      <label
+                        htmlFor={`score-${entry._id}`}
+                        className="text-base font-inter font-medium text-gray-700 whitespace-nowrap"
+                      >
+                        Score:
+                      </label>
+                      <input
+                        id={`score-${entry._id}`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={currentScore}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setLocalScores((prev) => ({ ...prev, [entry._id]: value === '' ? 0 : parseFloat(value) }))
+                        }}
+                        onBlur={(e) => handleBlur(e, entry._id)}
+                        onKeyDown={(e) => handleKeyDown(e, entry._id)}
+                        className="flex-1 max-w-xs px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent text-lg"
+                        placeholder="0-100"
+                        disabled={savingState === 'saving'}
+                      />
+                      <div className="w-8 h-8 flex items-center justify-center">
+                        {savingState === 'saving' && (
+                          <svg
+                            className="animate-spin h-5 w-5 text-gray-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
+                          </svg>
+                        )}
+                        {savingState === 'saved' && (
+                          <svg
+                            className="h-6 w-6 text-green-500"
+                            fill="none"
                             stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                      )}
-                      {savingState === 'saved' && (
-                        <svg
-                          className="h-6 w-6 text-green-500"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      )}
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor={`comments-${entry._id}`}
+                        className="block text-base font-inter font-medium text-gray-700 mb-2"
+                      >
+                        Judging Comments
+                      </label>
+                      <textarea
+                        id={`comments-${entry._id}`}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent text-base font-inter"
+                        placeholder="Enter your comments about this entry..."
+                        value={localComments[entry._id] ?? entry.description ?? ''}
+                        onChange={(e) => {
+                          const value = e.target.value
+                          setLocalComments((prev) => ({ ...prev, [entry._id]: value }))
+                        }}
+                        onBlur={(e) => handleCommentsBlur(e, entry._id, entry.score)}
+                        disabled={savingState === 'saving'}
+                      />
                     </div>
                   </div>
                 </div>
