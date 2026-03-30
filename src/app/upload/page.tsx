@@ -6,13 +6,48 @@ import Footer from '../../components/Footer'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
 
+/** Structured error for API failures; validation uses summary only */
+type UploadErrorState = {
+  summary: string
+  detail?: string
+  referenceId?: string
+}
+
+function parseUploadApiError(response: Response, data: Record<string, unknown>): UploadErrorState {
+  const summary =
+    typeof data.error === 'string' && data.error.trim()
+      ? data.error
+      : `Upload failed (${response.status}${response.statusText ? ` ${response.statusText}` : ''})`
+
+  const detail =
+    typeof data.details === 'string' && data.details.trim() ? data.details.trim() : undefined
+
+  const referenceId =
+    typeof data.correlationId === 'string' && data.correlationId.trim()
+      ? data.correlationId.trim()
+      : undefined
+
+  const type = typeof data.type === 'string' ? data.type : undefined
+  const httpStatus = typeof data.httpStatus === 'number' ? data.httpStatus : undefined
+
+  const extraBits: string[] = []
+  if (type && type !== 'unknown_error') extraBits.push(`type: ${type}`)
+  if (httpStatus != null) extraBits.push(`HTTP ${httpStatus}`)
+
+  const combinedDetail =
+    [detail, extraBits.length ? extraBits.join(' · ') : undefined].filter(Boolean).join('\n') ||
+    undefined
+
+  return { summary, detail: combinedDetail, referenceId }
+}
+
 export default function UploadPage() {
   const [photographer, setPhotographer] = useState('')
   const [title, setTitle] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
-  const [errorMessage, setErrorMessage] = useState('')
+  const [uploadError, setUploadError] = useState<UploadErrorState | null>(null)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -20,25 +55,25 @@ export default function UploadPage() {
     // Validate required fields
     if (!file) {
       setStatus('error')
-      setErrorMessage('Please select an image file')
+      setUploadError({ summary: 'Please select an image file' })
       return
     }
 
     if (!title.trim()) {
       setStatus('error')
-      setErrorMessage('Please enter a title')
+      setUploadError({ summary: 'Please enter a title' })
       return
     }
 
     if (!photographer.trim()) {
       setStatus('error')
-      setErrorMessage('Please enter your name')
+      setUploadError({ summary: 'Please enter your name' })
       return
     }
 
     if (!termsAccepted) {
       setStatus('error')
-      setErrorMessage('You must accept the terms to submit your entry')
+      setUploadError({ summary: 'You must accept the terms to submit your entry' })
       return
     }
 
@@ -51,7 +86,7 @@ export default function UploadPage() {
 
     // Set uploading status
     setStatus('uploading')
-    setErrorMessage('')
+    setUploadError(null)
 
     try {
       const response = await fetch('/api/competition-entries', {
@@ -66,13 +101,23 @@ export default function UploadPage() {
         setTitle('')
         setFile(null)
       } else {
-        const errorData = await response.json()
+        let data: Record<string, unknown> = {}
+        try {
+          const text = await response.text()
+          data = text ? (JSON.parse(text) as Record<string, unknown>) : {}
+        } catch {
+          data = {}
+        }
         setStatus('error')
-        setErrorMessage(errorData.error || 'Failed to upload image. Please try again.')
+        setUploadError(parseUploadApiError(response, data))
       }
     } catch (error) {
       setStatus('error')
-      setErrorMessage('An error occurred. Please try again.')
+      const msg = error instanceof Error ? error.message : 'Unknown error'
+      setUploadError({
+        summary: 'Could not reach the server. Check your connection and try again.',
+        detail: msg,
+      })
       console.error('Upload error:', error)
     }
   }
@@ -81,12 +126,15 @@ export default function UploadPage() {
     const selectedFile = e.target.files?.[0]
     if (!selectedFile) return
 
-    setErrorMessage('')
+    setUploadError(null)
 
     // File type validation
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
     if (!allowedTypes.includes(selectedFile.type)) {
-      setErrorMessage('Please upload a JPEG or PNG image only. RAW files and other formats are not accepted.')
+      setUploadError({
+        summary:
+          'Please upload a JPEG or PNG image only. RAW files and other formats are not accepted.',
+      })
       setFile(null)
       // Reset the input
       e.target.value = ''
@@ -96,7 +144,10 @@ export default function UploadPage() {
     // File size validation (10MB max)
     const maxSize = 10 * 1024 * 1024 // 10MB in bytes
     if (selectedFile.size > maxSize) {
-      setErrorMessage('Image file is too large. Maximum file size is 10MB. Please compress or resize your image.')
+      setUploadError({
+        summary:
+          'Image file is too large. Maximum file size is 10MB. Please compress or resize your image.',
+      })
       setFile(null)
       e.target.value = ''
       return
@@ -113,7 +164,9 @@ export default function UploadPage() {
         const maxDimension = 4000
         
         if (longEdge > maxDimension) {
-          setErrorMessage(`Image dimensions are too large. Maximum long edge is ${maxDimension}px. Your image is ${longEdge}px. Please resize your image.`)
+          setUploadError({
+            summary: `Image dimensions are too large. Maximum long edge is ${maxDimension}px. Your image is ${longEdge}px. Please resize your image.`,
+          })
           setFile(null)
           e.target.value = ''
         } else {
@@ -123,14 +176,14 @@ export default function UploadPage() {
       
       img.onerror = () => {
         URL.revokeObjectURL(objectUrl)
-        setErrorMessage('Invalid image file. Please select a valid JPEG or PNG image.')
+        setUploadError({ summary: 'Invalid image file. Please select a valid JPEG or PNG image.' })
         setFile(null)
         e.target.value = ''
       }
       
       img.src = objectUrl
     } catch (error) {
-      setErrorMessage('Error reading image file. Please try again.')
+      setUploadError({ summary: 'Error reading image file. Please try again.' })
       setFile(null)
       e.target.value = ''
     }
@@ -142,7 +195,7 @@ export default function UploadPage() {
     setTitle('')
     setFile(null)
     setTermsAccepted(false)
-    setErrorMessage('')
+    setUploadError(null)
   }
 
   if (status === 'success') {
@@ -315,9 +368,19 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              {status === 'error' && errorMessage && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-700 text-sm font-inter">{errorMessage}</p>
+              {uploadError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-2">
+                  <p className="text-red-800 text-sm font-inter font-semibold">{uploadError.summary}</p>
+                  {uploadError.detail && (
+                    <p className="text-red-700 text-xs font-inter whitespace-pre-wrap break-words">
+                      {uploadError.detail}
+                    </p>
+                  )}
+                  {uploadError.referenceId && (
+                    <p className="text-red-600/90 text-xs font-mono">
+                      Reference ID (include if you contact support): {uploadError.referenceId}
+                    </p>
+                  )}
                 </div>
               )}
 

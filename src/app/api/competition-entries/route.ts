@@ -1,14 +1,32 @@
-import { createClient } from '@sanity/client'
+import { createClient, ClientError, ServerError } from '@sanity/client'
 import { NextResponse } from 'next/server'
 import { projectId, dataset, apiVersion } from '../../../sanity/env'
 
+function stringifySanityBody(body: unknown): string | undefined {
+  if (body === undefined || body === null) return undefined
+  if (typeof body === 'string') return body.length > 1200 ? `${body.slice(0, 1200)}…` : body
+  try {
+    const s = JSON.stringify(body)
+    return s.length > 1200 ? `${s.slice(0, 1200)}…` : s
+  } catch {
+    return String(body)
+  }
+}
+
 export async function POST(request: Request) {
+  const correlationId = crypto.randomUUID()
+
   try {
     // Validate token exists
     const token = process.env.SANITY_API_WRITE_TOKEN
     if (!token) {
+      console.error('[competition-entries]', correlationId, 'SANITY_API_WRITE_TOKEN missing')
       return NextResponse.json(
-        { error: 'SANITY_API_WRITE_TOKEN is not configured' },
+        {
+          error: 'Server configuration error: uploads are temporarily unavailable.',
+          correlationId,
+          type: 'config_error',
+        },
         { status: 500 }
       )
     }
@@ -34,21 +52,21 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!file) {
       return NextResponse.json(
-        { error: 'File is required' },
+        { error: 'File is required', correlationId, type: 'validation' },
         { status: 400 }
       )
     }
 
     if (!title || !photographer) {
       return NextResponse.json(
-        { error: 'Title and photographer are required' },
+        { error: 'Title and photographer are required', correlationId, type: 'validation' },
         { status: 400 }
       )
     }
 
     if (!termsAccepted) {
       return NextResponse.json(
-        { error: 'Terms must be accepted to submit an entry' },
+        { error: 'Terms must be accepted to submit an entry', correlationId, type: 'validation' },
         { status: 400 }
       )
     }
@@ -57,7 +75,12 @@ export async function POST(request: Request) {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only JPEG and PNG images are allowed.' },
+        {
+          error: 'Invalid file type. Only JPEG and PNG images are allowed.',
+          details: `Received type: "${file.type || 'unknown'}".`,
+          correlationId,
+          type: 'validation',
+        },
         { status: 400 }
       )
     }
@@ -66,7 +89,12 @@ export async function POST(request: Request) {
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       return NextResponse.json(
-        { error: 'File size exceeds 10MB limit. Please compress or resize your image.' },
+        {
+          error: 'File size exceeds 10MB limit. Please compress or resize your image.',
+          details: `File size: ${(file.size / 1024 / 1024).toFixed(2)} MB.`,
+          correlationId,
+          type: 'validation',
+        },
         { status: 400 }
       )
     }
@@ -77,8 +105,13 @@ export async function POST(request: Request) {
     })
 
     if (!asset._id) {
+      console.error('[competition-entries]', correlationId, 'asset upload returned no _id')
       return NextResponse.json(
-        { error: 'Failed to upload image asset' },
+        {
+          error: 'Image upload did not complete. Please try again or use a different file.',
+          correlationId,
+          type: 'asset_upload',
+        },
         { status: 500 }
       )
     }
@@ -127,37 +160,43 @@ export async function POST(request: Request) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('Error creating competition entry:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    const errorStack = error instanceof Error ? error.stack : undefined
-    
-    // Log full error details for debugging
-    if (error instanceof Error) {
-      console.error('Error name:', error.name)
-      console.error('Error message:', error.message)
-      if (errorStack) {
-        console.error('Error stack:', errorStack)
-      }
-    }
-    
-    // Check if it's a Sanity API error
-    if (error && typeof error === 'object' && 'responseBody' in error) {
-      const sanityError = error as { responseBody?: { message?: string; error?: { description?: string } } }
-      console.error('Sanity API error:', JSON.stringify(sanityError.responseBody, null, 2))
+
+    if (error instanceof ClientError || error instanceof ServerError) {
+      const details =
+        stringifySanityBody(error.responseBody) ??
+        (error.details ? stringifySanityBody(error.details) : undefined)
+      const httpStatus =
+        error.statusCode >= 400 && error.statusCode < 600 ? error.statusCode : 500
+
+      console.error('[competition-entries]', correlationId, 'Sanity API error', {
+        statusCode: error.statusCode,
+        message: error.message,
+        responseBody: error.responseBody,
+      })
+
       return NextResponse.json(
         {
-          error: 'Error creating competition entry',
-          details: sanityError.responseBody?.message || sanityError.responseBody?.error?.description || errorMessage,
-          type: 'sanity_error',
+          error:
+            error.statusCode === 413
+              ? 'Image file is too large for the server to accept. Try a smaller file or stronger compression.'
+              : 'Upload failed while talking to our image service.',
+          details: details || error.message,
+          correlationId,
+          type: 'sanity_api_error',
+          httpStatus: error.statusCode,
         },
-        { status: 500 }
+        { status: httpStatus }
       )
     }
-    
+
+    console.error('[competition-entries]', correlationId, 'Error creating competition entry:', error)
+
     return NextResponse.json(
       {
-        error: 'Error creating competition entry',
+        error: 'Something went wrong while saving your entry.',
         details: errorMessage,
+        correlationId,
         type: 'unknown_error',
       },
       { status: 500 }
