@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import NavBar from '../../components/NavBar'
 import Footer from '../../components/Footer'
+import {
+  COMPETITION_MAX_FILE_BYTES,
+  COMPETITION_MAX_LONG_EDGE_PX,
+} from '../../lib/competitionUploadLimits'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
 
@@ -141,12 +145,11 @@ export default function UploadPage() {
       return
     }
 
-    // File size validation (10MB max)
-    const maxSize = 10 * 1024 * 1024 // 10MB in bytes
-    if (selectedFile.size > maxSize) {
+    // File size validation (must stay under Vercel request body limit)
+    if (selectedFile.size > COMPETITION_MAX_FILE_BYTES) {
       setUploadError({
         summary:
-          'Image file is too large. Maximum file size is 10MB. Please compress or resize your image.',
+          'Image file is too large. Maximum file size is 4 MB. Please compress or resize your image.',
       })
       setFile(null)
       e.target.value = ''
@@ -161,11 +164,10 @@ export default function UploadPage() {
       img.onload = () => {
         URL.revokeObjectURL(objectUrl)
         const longEdge = Math.max(img.width, img.height)
-        const maxDimension = 4000
-        
-        if (longEdge > maxDimension) {
+
+        if (longEdge > COMPETITION_MAX_LONG_EDGE_PX) {
           setUploadError({
-            summary: `Image dimensions are too large. Maximum long edge is ${maxDimension}px. Your image is ${longEdge}px. Please resize your image.`,
+            summary: `Image dimensions are too large. Maximum long edge is ${COMPETITION_MAX_LONG_EDGE_PX}px. Your image is ${longEdge}px. Please resize your image.`,
           })
           setFile(null)
           e.target.value = ''
@@ -316,8 +318,8 @@ export default function UploadPage() {
                   </h3>
                   <ul className="text-sm text-gray-700 font-inter space-y-1 list-disc list-inside">
                     <li><strong>Accepted formats:</strong> JPEG, PNG only</li>
-                    <li><strong>Maximum file size:</strong> 10MB</li>
-                    <li><strong>Maximum dimension:</strong> 4000px (long edge)</li>
+                    <li><strong>Maximum file size:</strong> 4 MB (required for our hosting)</li>
+                    <li><strong>Maximum dimension:</strong> 2000px (long edge)</li>
                     <li><strong>Not accepted:</strong> RAW files (CR2, NEF, ARW, etc.), TIFF, HEIC, or other formats</li>
                   </ul>
                 </div>

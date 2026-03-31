@@ -1,6 +1,7 @@
 import { createClient, ClientError, ServerError } from '@sanity/client'
 import { NextResponse } from 'next/server'
 import { projectId, dataset, apiVersion } from '../../../sanity/env'
+import { COMPETITION_MAX_FILE_BYTES } from '../../../lib/competitionUploadLimits'
 
 function stringifySanityBody(body: unknown): string | undefined {
   if (body === undefined || body === null) return undefined
@@ -85,12 +86,11 @@ export async function POST(request: Request) {
       )
     }
 
-    // File size validation (10MB max)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
+    // File size validation (under Vercel ~4.5MB request body limit)
+    if (file.size > COMPETITION_MAX_FILE_BYTES) {
       return NextResponse.json(
         {
-          error: 'File size exceeds 10MB limit. Please compress or resize your image.',
+          error: 'File size exceeds 4 MB limit. Please compress or resize your image.',
           details: `File size: ${(file.size / 1024 / 1024).toFixed(2)} MB.`,
           correlationId,
           type: 'validation',
