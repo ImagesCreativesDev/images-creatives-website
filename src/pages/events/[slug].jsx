@@ -3,7 +3,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { getEventBySlug } from '../../lib/sanity'
 import { urlFor } from '../../lib/sanity'
+import { portableTextToPlainText } from '../../lib/eventPortableText'
 import Button from '../../components/Button'
+import EventPortableText from '../../components/EventPortableText'
 
 export default function EventPage({ event }) {
   if (!event) {
@@ -51,7 +53,14 @@ export default function EventPage({ event }) {
     <div className='min-h-screen bg-[#433F59]'>
       <Head>
         <title>{event.title} - Image Creatives</title>
-        <meta name="description" content={event.description ? `${event.description.substring(0, 160)}...` : `Details for ${event.title}, Image Creatives of Southwest Florida.`} />
+        <meta
+          name="description"
+          content={
+            portableTextToPlainText(event.description)
+              ? `${portableTextToPlainText(event.description).slice(0, 160).trim()}…`
+              : `Details for ${event.title}, Image Creatives of Southwest Florida.`
+          }
+        />
       </Head>
 
       {/* Back Navigation */}
@@ -143,11 +152,9 @@ export default function EventPage({ event }) {
                   </p>
                 )}
 
-                {/* Description */}
+                {/* Description (portable text or legacy string) */}
                 <div className='mb-6'>
-                  <p className='text-gray-300 font-inter leading-relaxed whitespace-pre-line'>
-                    {event.description}
-                  </p>
+                  <EventPortableText value={event.description} />
                 </div>
 
                 {/* Optional external link (e.g. venue or more info) */}

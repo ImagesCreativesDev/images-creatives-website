@@ -1,4 +1,5 @@
 import { client } from '../../../lib/sanity'
+import { normalizeEventDescription } from '../../../lib/eventPortableText'
 
 export default async function handler(req, res) {
   if (req.method !== 'PUT') {
@@ -25,9 +26,10 @@ export default async function handler(req, res) {
       image
     } = req.body
 
+    const descriptionBlocks = normalizeEventDescription(description)
     // Validate required fields
-    if (!_id || !title || !description || !eventDate || !location) {
-      return res.status(400).json({ message: 'Missing required fields' })
+    if (!_id || !title || !descriptionBlocks || !eventDate || !location) {
+      return res.status(400).json({ message: 'Missing required fields (title, description, event date, location)' })
     }
 
     // Pass through full ISO strings as-is to avoid server (UTC) re-parsing timezone-agnostic strings
@@ -37,7 +39,7 @@ export default async function handler(req, res) {
 
     const event = {
       title,
-      description,
+      description: descriptionBlocks,
       eventDate: eventDateStr,
       location,
       isVirtual: isVirtual || false,

@@ -86,7 +86,18 @@ export async function getUpcomingEvents(limit = 10) {
     _id,
     title,
     slug,
-    description,
+    description[]{
+      ...,
+      _type == "image" => {
+        ...,
+        asset->{
+          _id,
+          _type,
+          url,
+          metadata { dimensions { width, height } }
+        }
+      }
+    },
     eventDate,
     location,
     image,
@@ -114,7 +125,18 @@ export async function getEventBySlug(slug) {
     _id,
     title,
     slug,
-    description,
+    description[]{
+      ...,
+      _type == "image" => {
+        ...,
+        asset->{
+          _id,
+          _type,
+          url,
+          metadata { dimensions { width, height } }
+        }
+      }
+    },
     eventDate,
     location,
     image {

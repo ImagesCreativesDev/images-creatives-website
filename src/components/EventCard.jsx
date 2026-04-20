@@ -1,5 +1,4 @@
-import Image from 'next/image'
-import { urlFor } from '../lib/sanity'
+import { excerptFromDescription } from '../lib/eventPortableText'
 import Button from './Button'
 
 const headerColors = {
@@ -29,14 +28,6 @@ export default function EventCard({ event }) {
       timeZone: tz,
     })
     return `${dateStr} ${timeStr}`
-  }
-
-  const formatDescription = (desc) => {
-    if (!desc) return ''
-    if (desc.length > 120) {
-      return desc.substring(0, 120) + '...'
-    }
-    return desc
   }
 
   return (
@@ -129,7 +120,7 @@ export default function EventCard({ event }) {
 
         {/* Description */}
         <p className='text-gray-400 font-inter text-sm leading-relaxed mb-6'>
-          {formatDescription(event.description)}
+          {excerptFromDescription(event.description, 120)}
         </p>
 
         {/* CTA Button - link to event detail page */}

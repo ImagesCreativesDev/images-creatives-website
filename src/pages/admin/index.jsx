@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { getUpcomingEvents } from '../../lib/sanity'
+import { portableTextToPlainText } from '../../lib/eventPortableText'
 import imageUrlBuilder from '@sanity/image-url'
 
 // Create image URL builder for client-side use
@@ -311,7 +312,7 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
     setFormData({
       title: event.title || '',
       slug: event.slug?.current || event.slug || '',
-      description: event.description || '',
+      description: portableTextToPlainText(event.description) || '',
       eventDate: toDatetimeLocal(event.eventDate),
       location: event.location || '',
       isVirtual: event.isVirtual || false,
@@ -591,12 +592,16 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
 
             <div>
               <label className="block text-gray-700 font-inter font-medium mb-2">
-                Description *
+                Description * (plain text)
               </label>
+              <p className="text-xs text-gray-500 font-inter mb-2">
+                Paragraphs only here. For bold, links, headings, or inline images, edit this event in{' '}
+                <strong>Sanity Studio</strong> (/studio) after saving—saving from this form replaces the full description with these paragraphs only.
+              </p>
               <textarea
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
-                rows={4}
+                rows={6}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
                 required
               />

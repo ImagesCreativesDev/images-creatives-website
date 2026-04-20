@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { urlFor } from '../lib/sanity'
+import { portableTextToPlainText } from '../lib/eventPortableText'
 import Button from './Button'
 
 export default function EventsCarousel({ events = [] }) {
@@ -133,7 +134,7 @@ export default function EventsCarousel({ events = [] }) {
 
                 {/* Description */}
                 <p className='text-gray-300 font-inter leading-relaxed mb-6'>
-                  {currentEvent.description}
+                  {portableTextToPlainText(currentEvent.description)}
                 </p>
 
                 {/* CTA Button - link to event detail page */}
