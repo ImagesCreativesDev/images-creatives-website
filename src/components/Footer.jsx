@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import { STRIPE_MEMBERSHIP_PORTAL_URL } from '../lib/stripeMembershipPortal'
 
 export default function Footer() {
   return (
@@ -52,6 +53,16 @@ export default function Footer() {
               <li><a href='/events' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Events</a></li>
               <li><a href='/members' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Members</a></li>
               <li><a href='/membership' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Membership</a></li>
+              <li>
+                <a
+                  href={STRIPE_MEMBERSHIP_PORTAL_URL}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'
+                >
+                  Manage Membership
+                </a>
+              </li>
               <li><a href='/free-meeting' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Free Meeting</a></li>
               <li><a href='/upload' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Submit Photo</a></li>
               <li><a href='/' className='text-gray-300 hover:text-flame transition-colors duration-300 font-inter'>Home</a></li>

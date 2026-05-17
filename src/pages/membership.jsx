@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import MembershipButton from '../components/MembershipButton'
+import { STRIPE_MEMBERSHIP_PORTAL_URL } from '../lib/stripeMembershipPortal'
 
 export default function MembershipPage() {
   return (
@@ -52,6 +53,17 @@ export default function MembershipPage() {
 
             {/* CTA Button */}
             <MembershipButton />
+            <p className="text-center text-gray-400 font-inter text-sm pt-1">
+              Already a member?{' '}
+              <a
+                href={STRIPE_MEMBERSHIP_PORTAL_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-teal-400 hover:text-flame transition-colors duration-300"
+              >
+                Manage your membership →
+              </a>
+            </p>
           </div>
 
           {/* Bottom decorative accent */}
