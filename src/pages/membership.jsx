@@ -1,4 +1,5 @@
 import Head from 'next/head'
+import MembershipButton from '../components/MembershipButton'
 
 export default function MembershipPage() {
   return (
@@ -50,11 +51,7 @@ export default function MembershipPage() {
             </p>
 
             {/* CTA Button */}
-            <div className='text-center'>
-              <button className='btn-brand text-lg px-8 py-4 w-full md:w-auto'>
-                Join Now - $100/year
-              </button>
-            </div>
+            <MembershipButton />
           </div>
 
           {/* Bottom decorative accent */}
