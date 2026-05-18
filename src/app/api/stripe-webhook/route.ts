@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { syncCustomerEmailFromCheckoutSession } from '../../../lib/stripeMembershipCustomer'
+import { syncCustomerProfileFromCheckoutSession } from '../../../lib/stripeMembershipCustomer'
 
 export const runtime = 'nodejs'
 
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object
       if (session.mode === 'subscription') {
-        await syncCustomerEmailFromCheckoutSession(stripe, session)
+        await syncCustomerProfileFromCheckoutSession(stripe, session)
       }
     }
   } catch (error) {

@@ -2,8 +2,10 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { optionBJuneFirstFollowingCalendarYearUnix } from '../../../lib/membershipOptionBAnchor'
 import {
+  formatMembershipFullName,
   getOrCreateStripeCustomer,
   isValidMembershipEmail,
+  isValidMembershipNamePart,
   normalizeMembershipEmail,
 } from '../../../lib/stripeMembershipCustomer'
 
@@ -35,11 +37,17 @@ export async function POST(request: Request) {
   }
 
   let emailRaw = ''
+  let firstNameRaw = ''
+  let lastNameRaw = ''
   try {
-    const body = (await request.json()) as { email?: unknown }
-    if (typeof body.email === 'string') {
-      emailRaw = body.email
+    const body = (await request.json()) as {
+      email?: unknown
+      firstName?: unknown
+      lastName?: unknown
     }
+    if (typeof body.email === 'string') emailRaw = body.email
+    if (typeof body.firstName === 'string') firstNameRaw = body.firstName
+    if (typeof body.lastName === 'string') lastNameRaw = body.lastName
   } catch {
     return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
   }
@@ -47,8 +55,12 @@ export async function POST(request: Request) {
   if (!isValidMembershipEmail(emailRaw)) {
     return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
   }
+  if (!isValidMembershipNamePart(firstNameRaw) || !isValidMembershipNamePart(lastNameRaw)) {
+    return NextResponse.json({ error: 'First and last name are required.' }, { status: 400 })
+  }
 
   const email = normalizeMembershipEmail(emailRaw)
+  const fullName = formatMembershipFullName(firstNameRaw, lastNameRaw)
   const stripe = new Stripe(secret, { apiVersion: Stripe.API_VERSION })
 
   // Checkout cannot attach a SubscriptionSchedule. Option B + charge today is modeled like a
@@ -69,11 +81,15 @@ export async function POST(request: Request) {
   }
 
   try {
-    const customerId = await getOrCreateStripeCustomer(stripe, email)
+    const customerId = await getOrCreateStripeCustomer(stripe, email, fullName)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
+      customer_update: {
+        name: 'auto',
+        address: 'auto',
+      },
       custom_text: {
         submit: {
           message: CHECKOUT_CUSTOM_SUBMIT_MESSAGE,
