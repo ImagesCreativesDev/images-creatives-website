@@ -3,14 +3,25 @@
 import { useState } from 'react'
 
 export default function MembershipButton() {
+  const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleClick = async () => {
+    const trimmed = email.trim()
+    if (!trimmed) {
+      setError('Please enter your email address.')
+      return
+    }
+
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/membership-checkout', { method: 'POST' })
+      const res = await fetch('/api/membership-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: trimmed }),
+      })
       const data = (await res.json()) as { url?: string; error?: string }
 
       if (!res.ok) {
@@ -31,7 +42,27 @@ export default function MembershipButton() {
   }
 
   return (
-    <div className="text-center space-y-3">
+    <div className="text-center space-y-4 max-w-md mx-auto">
+      <div className="text-left">
+        <label htmlFor="membership-email" className="block text-gray-300 font-inter text-sm mb-2">
+          Email address
+        </label>
+        <input
+          id="membership-email"
+          type="email"
+          name="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={loading}
+          placeholder="you@example.com"
+          className="w-full px-4 py-3 rounded-lg bg-[#433F59] border border-white/20 text-white font-inter placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-400 disabled:opacity-50"
+        />
+        <p className="text-gray-500 font-inter text-xs mt-2">
+          Used for your receipt and membership account in Stripe.
+        </p>
+      </div>
       <button
         type="button"
         onClick={handleClick}

@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { optionBJuneFirstFollowingCalendarYearUnix } from '../../../lib/membershipOptionBAnchor'
+import {
+  getOrCreateStripeCustomer,
+  isValidMembershipEmail,
+  normalizeMembershipEmail,
+} from '../../../lib/stripeMembershipCustomer'
 
 export const runtime = 'nodejs'
 
@@ -14,7 +19,7 @@ const MEMBERSHIP_SIGNUP_UNIT_AMOUNT_CENTS = 10_000
 const CHECKOUT_CUSTOM_SUBMIT_MESSAGE =
   "You'll be charged $100 today. Your membership renews automatically each June 1st. Cancel anytime."
 
-export async function POST() {
+export async function POST(request: Request) {
   const secret = process.env.STRIPE_SECRET_KEY
   const siteUrlRaw = process.env.NEXT_PUBLIC_SITE_URL
   const siteUrl = siteUrlRaw?.replace(/\/$/, '')
@@ -29,6 +34,21 @@ export async function POST() {
     return NextResponse.json({ error: 'Site URL is not configured.' }, { status: 500 })
   }
 
+  let emailRaw = ''
+  try {
+    const body = (await request.json()) as { email?: unknown }
+    if (typeof body.email === 'string') {
+      emailRaw = body.email
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 })
+  }
+
+  if (!isValidMembershipEmail(emailRaw)) {
+    return NextResponse.json({ error: 'A valid email address is required.' }, { status: 400 })
+  }
+
+  const email = normalizeMembershipEmail(emailRaw)
   const stripe = new Stripe(secret, { apiVersion: Stripe.API_VERSION })
 
   // Checkout cannot attach a SubscriptionSchedule. Option B + charge today is modeled like a
@@ -49,8 +69,11 @@ export async function POST() {
   }
 
   try {
+    const customerId = await getOrCreateStripeCustomer(stripe, email)
+
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
+      customer: customerId,
       custom_text: {
         submit: {
           message: CHECKOUT_CUSTOM_SUBMIT_MESSAGE,
