@@ -22,7 +22,8 @@ export default async function handler(req, res) {
       capacity,
       ticketsSold,
       buttonText,
-      registrationLink
+      registrationLink,
+      isArchived
     }`
 
     const events = await clientNoCdn.fetch(query)

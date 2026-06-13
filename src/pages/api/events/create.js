@@ -29,7 +29,8 @@ export default async function handler(req, res) {
       buttonText,
       registrationLink,
       slug: slugInput,
-      image
+      image,
+      isArchived,
     } = req.body
 
     const descriptionBlocks = normalizeEventDescription(description)
@@ -78,7 +79,8 @@ export default async function handler(req, res) {
       capacity: capacity ? parseInt(capacity) : null,
       ticketsSold: ticketsSold ? parseInt(ticketsSold) : 0,
       buttonText: buttonText || 'View Details',
-      registrationLink: registrationLink || ''
+      registrationLink: registrationLink || '',
+      isArchived: isArchived || false,
     }
 
     if (image && typeof image === 'object' && image._type === 'image') {

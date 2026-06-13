@@ -174,6 +174,14 @@ export default defineType({
       description: 'e.g., "Buy Tickets", "View Details"',
       initialValue: 'View Details',
     }),
+    defineField({
+      name: 'isArchived',
+      title: 'Archive / Hide from public listings',
+      type: 'boolean',
+      initialValue: false,
+      description:
+        'When enabled, this event is hidden from the homepage and /events page regardless of date.',
+    }),
   ],
   preview: {
     select: {

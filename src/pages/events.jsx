@@ -1,62 +1,9 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import EventCard from '../components/EventCard'
 import { getUpcomingEvents } from '../lib/sanity'
 
 export default function EventsPage({ events }) {
-  // Fallback mock events if no Sanity data
-  const mockEvents = [
-    {
-      _id: '1',
-      title: 'November PPCF Board Meeting',
-      description: 'Our monthly board member meeting is a collaborative gathering of the leadership team of the Professional Photographers of Central Florida...',
-      eventDate: '2025-11-10T19:00:00Z',
-      location: 'Virtual',
-      isVirtual: true,
-      headerColor: 'yellow',
-      headerText: 'BOARD MEETING',
-      headerSubText: '',
-      price: null,
-      capacity: null,
-      buttonText: 'View Details',
-      registrationLink: '#details'
-    },
-    {
-      _id: '2',
-      title: 'November 2025 Monthly Meeting',
-      description: 'Join us for our monthly PPCF meeting featuring inspiring speakers, networking opportunities, and educational content for photographers of all levels.',
-      eventDate: '2025-11-18T18:30:00Z',
-      location: 'Evolve Technology',
-      isVirtual: false,
-      headerColor: 'blue',
-      headerText: 'MONTHLY MEETING',
-      headerSubText: 'ENGAGE & EDUCATE',
-      price: 'Starting $0.00',
-      capacity: 100,
-      ticketsSold: 0,
-      buttonText: 'Buy Tickets',
-      registrationLink: '#tickets'
-    },
-    {
-      _id: '3',
-      title: 'December Workshop - Advanced Lighting',
-      description: 'Learn advanced lighting techniques from industry professionals. This hands-on workshop will cover studio lighting, outdoor techniques, and creative lighting setups.',
-      eventDate: '2025-12-05T10:00:00Z',
-      location: 'Image Creatives Studio',
-      isVirtual: false,
-      headerColor: 'purple',
-      headerText: 'WORKSHOP',
-      headerSubText: 'LEARN & CREATE',
-      price: 'Starting $75.00',
-      capacity: 20,
-      ticketsSold: 8,
-      buttonText: 'Register Now',
-      registrationLink: '#register'
-    }
-  ]
-
-  // Use Sanity events if available, otherwise fallback to mock data
-  const displayEvents = events && events.length > 0 ? events : mockEvents
-
   return (
     <div className='min-h-screen bg-[#433F59]'>
       <Head>
@@ -78,11 +25,25 @@ export default function EventsPage({ events }) {
       {/* Events Grid */}
       <section className='py-12 md:py-20'>
         <div className='max-w-7xl mx-auto px-4'>
-          <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
-            {displayEvents.map((event) => (
-              <EventCard key={event._id} event={event} />
-            ))}
-          </div>
+          {events.length === 0 ? (
+            <div className='text-center py-12 px-6 bg-gray-800/30 rounded-brand-lg'>
+              <p className='text-xl text-gray-300 font-inter mb-6'>
+                No upcoming events right now — check back soon for workshops, meetings, and networking opportunities.
+              </p>
+              <Link
+                href='/membership'
+                className='inline-block bg-flame text-white px-6 py-3 rounded-lg hover:bg-ember transition-colors duration-300 font-inter font-medium'
+              >
+                Join Image Creatives
+              </Link>
+            </div>
+          ) : (
+            <div className='grid md:grid-cols-2 lg:grid-cols-3 gap-8'>
+              {events.map((event) => (
+                <EventCard key={event._id} event={event} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
@@ -106,4 +67,3 @@ export async function getServerSideProps() {
     }
   }
 }
-

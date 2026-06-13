@@ -7,42 +7,8 @@ import Button from './Button'
 
 export default function EventsCarousel({ events = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const currentEvent = events[currentIndex]
 
-  // Mock data for development
-  const mockEvents = [
-    {
-      _id: '1',
-      title: 'Monthly Meetup - March 2025',
-      description: 'Join us for our monthly Image Creatives meetup featuring inspiring speakers and networking opportunities.',
-      eventDate: '2025-03-15T18:00:00Z',
-      location: 'Location TBA',
-      image: null,
-      registrationLink: '#register'
-    },
-    {
-      _id: '2',
-      title: 'Photography Workshop',
-      description: 'Learn advanced photography techniques from industry professionals.',
-      eventDate: '2025-04-20T14:00:00Z',
-      location: 'Image Creatives Studio',
-      image: null,
-      registrationLink: '#register'
-    },
-    {
-      _id: '3',
-      title: 'Portfolio Review Night',
-      description: 'Get feedback on your portfolio from fellow photographers and mentors.',
-      eventDate: '2025-05-10T18:00:00Z',
-      location: 'Downtown Gallery',
-      image: null,
-      registrationLink: '#register'
-    }
-  ]
-
-  const displayEvents = events.length > 0 ? events : mockEvents
-  const currentEvent = displayEvents[currentIndex]
-
-  // Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString)
     return date.toLocaleDateString('en-US', { 
@@ -59,13 +25,13 @@ export default function EventsCarousel({ events = [] }) {
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === displayEvents.length - 1 ? 0 : prevIndex + 1
+      prevIndex === events.length - 1 ? 0 : prevIndex + 1
     )
   }
 
   const prevSlide = () => {
     setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? displayEvents.length - 1 : prevIndex - 1
+      prevIndex === 0 ? events.length - 1 : prevIndex - 1
     )
   }
 
@@ -86,116 +52,119 @@ export default function EventsCarousel({ events = [] }) {
           </h2>
         </div>
 
-        {/* Event Carousel */}
-        <div className='relative'>
-          <div className='bg-gray-800/50 rounded-brand-lg overflow-hidden shadow-brand-xl'>
-            <div className='grid md:grid-cols-3 gap-0'>
-              {/* Left Column - Event Image */}
-              <div className='md:col-span-1 relative h-64 md:h-auto'>
-                {currentEvent.image ? (
-                  <Image
-                    src={urlFor(currentEvent.image).width(600).height(800).url()}
-                    alt={currentEvent.title}
-                    width={600}
-                    height={800}
-                    className='w-full h-full object-cover'
-                  />
-                ) : (
-                  <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
-                    <div className='text-center'>
-                      <div className='text-6xl mb-4'>📅</div>
-                      <p className='text-white/80 font-inter'>Event Image</p>
+        {events.length === 0 ? (
+          <div className='bg-gray-800/50 rounded-brand-lg p-8 md:p-12 text-center shadow-brand-xl'>
+            <p className='text-xl text-gray-300 font-inter mb-6'>
+              No upcoming events right now — check back soon for workshops, meetings, and networking opportunities.
+            </p>
+            <Button href='/membership' variant='flame' className='text-base md:text-lg px-6 md:px-8 py-3 md:py-4'>
+              Join Image Creatives
+            </Button>
+          </div>
+        ) : (
+          <div className='relative'>
+            <div className='bg-gray-800/50 rounded-brand-lg overflow-hidden shadow-brand-xl'>
+              <div className='grid md:grid-cols-3 gap-0'>
+                {/* Left Column - Event Image */}
+                <div className='md:col-span-1 relative h-64 md:h-auto'>
+                  {currentEvent.image ? (
+                    <Image
+                      src={urlFor(currentEvent.image).width(600).height(800).url()}
+                      alt={currentEvent.title}
+                      width={600}
+                      height={800}
+                      className='w-full h-full object-cover'
+                    />
+                  ) : (
+                    <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
+                      <div className='text-center'>
+                        <div className='text-6xl mb-4'>📅</div>
+                        <p className='text-white/80 font-inter'>Event Image</p>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Right Column - Event Details */}
-              <div className='md:col-span-2 p-8 md:p-12'>
-                {/* Event Title */}
-                <h3 className='text-2xl md:text-3xl font-poppins font-bold text-white mb-4'>
-                  {currentEvent.title}
-                </h3>
-
-                {/* Event Details */}
-                <div className='space-y-3 mb-6'>
-                  <div className='flex items-start space-x-3'>
-                    <span className='text-flame text-lg'>📅</span>
-                    <div>
-                      <p className='text-gray-300 font-inter'>{formatDate(currentEvent.eventDate)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className='flex items-start space-x-3'>
-                    <span className='text-flame text-lg'>📍</span>
-                    <p className='text-gray-300 font-inter'>{currentEvent.location}</p>
-                  </div>
+                  )}
                 </div>
 
-                {/* Description */}
-                <p className='text-gray-300 font-inter leading-relaxed mb-6'>
-                  {portableTextToPlainText(currentEvent.description)}
-                </p>
+                {/* Right Column - Event Details */}
+                <div className='md:col-span-2 p-8 md:p-12'>
+                  <h3 className='text-2xl md:text-3xl font-poppins font-bold text-white mb-4'>
+                    {currentEvent.title}
+                  </h3>
 
-                {/* CTA Button - link to event detail page */}
-                <div className='mb-8'>
-                  <Button 
-                    href={currentEvent.slug?.current ? `/events/${currentEvent.slug.current}` : (currentEvent.slug ? `/events/${currentEvent.slug}` : '/events')} 
-                    variant="flame"
-                    className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
-                  >
-                    More Information
-                  </Button>
-                </div>
+                  <div className='space-y-3 mb-6'>
+                    <div className='flex items-start space-x-3'>
+                      <span className='text-flame text-lg'>📅</span>
+                      <div>
+                        <p className='text-gray-300 font-inter'>{formatDate(currentEvent.eventDate)}</p>
+                      </div>
+                    </div>
+                    
+                    <div className='flex items-start space-x-3'>
+                      <span className='text-flame text-lg'>📍</span>
+                      <p className='text-gray-300 font-inter'>{currentEvent.location}</p>
+                    </div>
+                  </div>
 
-                {/* Carousel Navigation */}
-                <div className='flex items-center justify-between pt-6 border-t border-white/10'>
-                  {/* Previous Button */}
-                  <button
-                    onClick={prevSlide}
-                    className='flex items-center space-x-2 text-white hover:text-flame transition-colors duration-300'
-                    aria-label='Previous event'
-                  >
-                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
-                    </svg>
-                    <span className='font-inter'>Previous</span>
-                  </button>
+                  <p className='text-gray-300 font-inter leading-relaxed mb-6'>
+                    {portableTextToPlainText(currentEvent.description)}
+                  </p>
 
-                  {/* Dots Indicator */}
-                  <div className='flex space-x-2'>
-                    {displayEvents.map((_, index) => (
+                  <div className='mb-8'>
+                    <Button 
+                      href={currentEvent.slug?.current ? `/events/${currentEvent.slug.current}` : (currentEvent.slug ? `/events/${currentEvent.slug}` : '/events')} 
+                      variant="flame"
+                      className="text-base md:text-lg px-6 md:px-8 py-3 md:py-4"
+                    >
+                      More Information
+                    </Button>
+                  </div>
+
+                  {events.length > 1 && (
+                    <div className='flex items-center justify-between pt-6 border-t border-white/10'>
                       <button
-                        key={index}
-                        onClick={() => goToSlide(index)}
-                        className={`transition-all duration-300 ${
-                          index === currentIndex
-                            ? 'w-8 h-2 bg-flame rounded-full'
-                            : 'w-2 h-2 bg-white/30 rounded-full hover:bg-white/50'
-                        }`}
-                        aria-label={`Go to slide ${index + 1}`}
-                      />
-                    ))}
-                  </div>
+                        onClick={prevSlide}
+                        className='flex items-center space-x-2 text-white hover:text-flame transition-colors duration-300'
+                        aria-label='Previous event'
+                      >
+                        <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
+                        </svg>
+                        <span className='font-inter'>Previous</span>
+                      </button>
 
-                  {/* Next Button */}
-                  <button
-                    onClick={nextSlide}
-                    className='flex items-center space-x-2 text-white hover:text-flame transition-colors duration-300'
-                    aria-label='Next event'
-                  >
-                    <span className='font-inter'>Next</span>
-                    <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                      <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
-                    </svg>
-                  </button>
+                      <div className='flex space-x-2'>
+                        {events.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => goToSlide(index)}
+                            className={`transition-all duration-300 ${
+                              index === currentIndex
+                                ? 'w-8 h-2 bg-flame rounded-full'
+                                : 'w-2 h-2 bg-white/30 rounded-full hover:bg-white/50'
+                            }`}
+                            aria-label={`Go to slide ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={nextSlide}
+                        className='flex items-center space-x-2 text-white hover:text-flame transition-colors duration-300'
+                        aria-label='Next event'
+                      >
+                        <span className='font-inter'>Next</span>
+                        <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                          <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
+                        </svg>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   )
 }
-

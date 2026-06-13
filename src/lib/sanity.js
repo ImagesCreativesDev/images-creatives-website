@@ -82,7 +82,7 @@ export async function getMembers() {
 }
 
 export async function getUpcomingEvents(limit = 10) {
-  const query = `*[_type == "event"] | order(eventDate asc) [0...${limit}] {
+  const query = `*[_type == "event" && eventDate >= $now && !coalesce(isArchived, false)] | order(eventDate asc) [0...$limit] {
     _id,
     title,
     slug,
@@ -113,7 +113,10 @@ export async function getUpcomingEvents(limit = 10) {
   }`
   
   try {
-    return await clientNoCdn.fetch(query)
+    return await clientNoCdn.fetch(query, {
+      now: new Date().toISOString(),
+      limit,
+    })
   } catch (error) {
     console.error('Error fetching events:', error)
     return []

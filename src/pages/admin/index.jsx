@@ -266,7 +266,8 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
     ticketsSold: '',
     buttonText: '',
     registrationLink: '',
-    image: null
+    image: null,
+    isArchived: false,
   })
   const [eventImageFile, setEventImageFile] = useState(null)
   const [eventImagePreview, setEventImagePreview] = useState(null)
@@ -293,7 +294,8 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
       ticketsSold: '',
       buttonText: '',
       registrationLink: '',
-      image: null
+      image: null,
+      isArchived: false,
     })
     setEventImageFile(null)
     setEventImagePreview(null)
@@ -324,7 +326,8 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
       ticketsSold: event.ticketsSold || '',
       buttonText: event.buttonText || '',
       registrationLink: event.registrationLink || '',
-      image: event.image || null
+      image: event.image || null,
+      isArchived: event.isArchived || false,
     })
     setEventImageFile(null)
     setEventImagePreview(null)
@@ -472,6 +475,7 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
                       <p>📅 {formatDate(event.eventDate)}</p>
                       <p>📍 {event.location}</p>
                       {event.isVirtual && <p>💻 Virtual Event</p>}
+                      {event.isArchived && <p className="text-amber-700">📁 Archived (hidden from public listings)</p>}
                     </div>
                   </div>
                   <div className="flex space-x-2 ml-4">
@@ -744,6 +748,19 @@ function EventsManagement({ events, onUpdate, onMessage, loading }) {
               />
               <label htmlFor="isVirtual" className="text-gray-700 font-inter">
                 Virtual Event
+              </label>
+            </div>
+
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                id="isArchived"
+                checked={formData.isArchived}
+                onChange={(e) => setFormData({...formData, isArchived: e.target.checked})}
+                className="mr-2"
+              />
+              <label htmlFor="isArchived" className="text-gray-700 font-inter">
+                Archive / hide from public listings
               </label>
             </div>
 
