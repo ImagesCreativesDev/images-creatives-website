@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { optionBJuneFirstFollowingCalendarYearUnix } from '../../../lib/membershipOptionBAnchor'
 import {
   formatMembershipFullName,
   getOrCreateStripeCustomer,
@@ -11,15 +10,12 @@ import {
 
 export const runtime = 'nodejs'
 
-/** Annual membership Price (recurring); trial aligns first paid cycle to Option B June 1. */
+/** Annual membership Price (recurring); renews each June 1 with prorated first period. */
 const DEFAULT_MEMBERSHIP_PRICE_ID = 'price_1TXCE5AHcbvyQGr2d5sq9FlR'
-
-/** One-time dues at checkout (cents). Must match your published annual amount. */
-const MEMBERSHIP_SIGNUP_UNIT_AMOUNT_CENTS = 10_000
 
 /** Shown alongside the pay button on Stripe Checkout (hosted page). */
 const CHECKOUT_CUSTOM_SUBMIT_MESSAGE =
-  "You'll be charged $100 today. Your membership renews automatically each June 1st. Cancel anytime."
+  'You will be charged a prorated amount for the remainder of this club year today. Your membership automatically renews for the full $100 each June 1st.'
 
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_SECRET_KEY
@@ -63,23 +59,6 @@ export async function POST(request: Request) {
   const fullName = formatMembershipFullName(firstNameRaw, lastNameRaw)
   const stripe = new Stripe(secret, { apiVersion: Stripe.API_VERSION })
 
-  // Checkout cannot attach a SubscriptionSchedule. Option B + charge today is modeled like a
-  // two-phase schedule: (1) one-time line collects full dues now; (2) recurring item stays in
-  // trial until June 1 (year + 1), then bills yearly from that anchor.
-  const trialEnd = optionBJuneFirstFollowingCalendarYearUnix()
-  const nowSec = Math.floor(Date.now() / 1000)
-  const minTrialEnd = nowSec + 48 * 60 * 60
-  if (trialEnd < minTrialEnd) {
-    console.error('[membership-checkout] Option B trial_end is within Stripe minimum window', {
-      trialEnd,
-      minTrialEnd,
-    })
-    return NextResponse.json(
-      { error: 'Membership billing window is invalid. Please try again later.' },
-      { status: 500 }
-    )
-  }
-
   try {
     const customerId = await getOrCreateStripeCustomer(stripe, email, fullName)
 
@@ -97,28 +76,18 @@ export async function POST(request: Request) {
       },
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            tax_behavior: 'exclusive',
-            product_data: {
-              name: 'Annual membership dues',
-              description:
-                'Membership for the current club year. Recurring subscription renews each June.',
-            },
-            unit_amount: MEMBERSHIP_SIGNUP_UNIT_AMOUNT_CENTS,
-          },
-          quantity: 1,
-        },
-        {
           price: membershipPriceId,
           quantity: 1,
         },
       ],
       subscription_data: {
-        trial_end: trialEnd,
+        billing_cycle_anchor_config: {
+          month: 6,
+          day_of_month: 1,
+        },
+        proration_behavior: 'create_prorations',
         metadata: {
-          billing_model: 'option_b_checkout_trial',
-          first_renewal_unix: String(trialEnd),
+          billing_model: 'billing_cycle_anchor_june_1',
         },
       },
       success_url: `${siteUrl}/membership-success`,
