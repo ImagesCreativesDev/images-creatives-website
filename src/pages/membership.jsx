@@ -48,11 +48,14 @@ export default function MembershipPage() {
 
             {/* Description */}
             <p className='text-gray-300 font-inter leading-relaxed mb-8'>
-              Maximize your photography skills with our Individual Membership, designed for solo photographers aiming to enhance their craft. This membership grants free access to monthly seminars, image competitions, and an exclusive Members-Only Facebook group for networking. Choose from monthly or yearly options to start refining your photography prowess today.
+              Maximize your photography skills with our Individual Membership, designed for solo photographers aiming to enhance their craft. This membership grants free access to monthly seminars, image competitions, and an exclusive Members-Only Facebook group for networking. Choose from monthly or yearly options to start refining your photography prowess today. Our membership year runs from June 1st to May 31st. If you join mid-cycle, your dues are automatically prorated at checkout so you only pay for the remaining months!
             </p>
 
             {/* CTA Button */}
             <MembershipButton />
+            <p className="text-center text-gray-400 font-inter text-sm pt-2">
+              Annual dues Prorated at Checkout
+            </p>
             <p className="text-center text-gray-400 font-inter text-sm pt-1">
               Already a member?{' '}
               <a

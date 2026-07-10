@@ -121,7 +121,7 @@ export default function MembershipButton() {
         disabled={loading}
         className="btn-brand text-lg px-8 py-4 w-full md:w-auto disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {loading ? 'Redirecting…' : 'Join Now - $100/year'}
+        {loading ? 'Redirecting…' : 'Join Now!'}
       </button>
       {error ? (
         <p className="text-red-300 text-sm font-inter" role="alert">
