@@ -11,6 +11,14 @@ export default function NavBar() {
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  const handleGetStartedClick = (event) => {
+    if (window.location.pathname === '/') {
+      event.preventDefault()
+      document.getElementById('get-started')?.scrollIntoView({ behavior: 'smooth' })
+      setIsOpen(false)
+    }
+  }
   
   return (
     <nav className='bg-[#433F59] backdrop-blur-sm shadow-brand sticky top-0 z-50 border-b border-white/10'>
@@ -79,8 +87,9 @@ export default function NavBar() {
             <span className='absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-flame transition-all duration-300 group-hover:w-full'></span>
           </Link>
           <Link 
-            href='#get-started' 
+            href='/#get-started' 
             className='btn-brand text-sm px-4 py-2'
+            onClick={handleGetStartedClick}
           >
             Get Started
           </Link>
@@ -156,9 +165,12 @@ export default function NavBar() {
             </Link>
             <div className='pt-2'>
               <Link 
-                href='#get-started' 
+                href='/#get-started' 
                 className='btn-brand text-sm px-4 py-2 inline-block'
-                onClick={() => setIsOpen(false)}
+                onClick={(event) => {
+                  handleGetStartedClick(event)
+                  setIsOpen(false)
+                }}
               >
                 Get Started
               </Link>

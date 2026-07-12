@@ -4,7 +4,7 @@ import Image from 'next/image'
 
 export default function MembershipCTA() {
   return (
-    <section className='py-12 md:py-20 bg-[#2C3942] relative overflow-hidden'>
+    <section id="get-started" className='py-12 md:py-20 bg-[#2C3942] relative overflow-hidden'>
       {/* Subtle overlay pattern */}
       <div className='absolute inset-0 opacity-5'>
         <div 
