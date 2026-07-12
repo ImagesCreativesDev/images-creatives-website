@@ -7,6 +7,10 @@ import {
   COMPETITION_MAX_FILE_BYTES,
   COMPETITION_MAX_LONG_EDGE_PX,
 } from '../../lib/competitionUploadLimits'
+import {
+  defaultCompetitionMonth,
+  getCompetitionMonthOptions,
+} from '../../lib/competitionMonth'
 
 type Status = 'idle' | 'uploading' | 'success' | 'error'
 
@@ -48,10 +52,12 @@ function parseUploadApiError(response: Response, data: Record<string, unknown>):
 export default function UploadPage() {
   const [photographer, setPhotographer] = useState('')
   const [title, setTitle] = useState('')
+  const [competitionMonth, setCompetitionMonth] = useState(defaultCompetitionMonth())
   const [file, setFile] = useState<File | null>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
   const [uploadError, setUploadError] = useState<UploadErrorState | null>(null)
+  const monthOptions = getCompetitionMonthOptions()
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -86,6 +92,7 @@ export default function UploadPage() {
     formData.append('file', file)
     formData.append('title', title)
     formData.append('photographer', photographer)
+    formData.append('competitionMonth', competitionMonth)
     formData.append('termsAccepted', 'true')
 
     // Set uploading status
@@ -103,6 +110,7 @@ export default function UploadPage() {
         // Reset form fields
         setPhotographer('')
         setTitle('')
+        setCompetitionMonth(defaultCompetitionMonth())
         setFile(null)
       } else {
         let data: Record<string, unknown> = {}
@@ -195,6 +203,7 @@ export default function UploadPage() {
     setStatus('idle')
     setPhotographer('')
     setTitle('')
+    setCompetitionMonth(defaultCompetitionMonth())
     setFile(null)
     setTermsAccepted(false)
     setUploadError(null)
@@ -308,6 +317,32 @@ export default function UploadPage() {
                   required
                   disabled={status === 'uploading'}
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="competitionMonth"
+                  className="block text-gray-700 font-inter font-medium mb-2"
+                >
+                  Competition Month *
+                </label>
+                <select
+                  id="competitionMonth"
+                  value={competitionMonth}
+                  onChange={(e) => setCompetitionMonth(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-flame focus:border-transparent"
+                  required
+                  disabled={status === 'uploading'}
+                >
+                  {monthOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-sm text-gray-500 font-inter">
+                  Defaults to next month since entries are usually submitted before the competition month.
+                </p>
               </div>
 
               <div>

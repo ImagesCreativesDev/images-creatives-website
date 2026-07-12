@@ -1,45 +1,38 @@
-import { createClient } from 'next-sanity'
-import { projectId, dataset, apiVersion } from '../../../sanity/env'
+import {
+  getAvailableCompetitionMonths,
+  getCompetitionEntries,
+} from '../../../lib/competitionEntries'
+import { defaultCompetitionMonth, resolveCompetitionMonth } from '../../../lib/competitionMonth'
 import ScoringGallery from './ScoringGallery'
 
 export const dynamic = 'force-dynamic'
 
-const client = createClient({
-  projectId,
-  dataset,
-  apiVersion,
-  useCdn: false,
-})
-
-interface CompetitionEntry {
-  _id: string
-  title: string
-  imageUrl: string
-  score?: number
-  description?: string
+interface JudgePageProps {
+  searchParams: Promise<{
+    month?: string
+    pending?: string
+  }>
 }
 
-async function getCompetitionEntries(): Promise<CompetitionEntry[]> {
-  const query = `*[_type == "competitionEntry" && defined(photo.asset->url)] | order(uploadDate desc) {
-    _id,
-    title,
-    "imageUrl": photo.asset->url,
-    score,
-    description
-  }`
+export default async function JudgePage({ searchParams }: JudgePageProps) {
+  const params = await searchParams
+  const selectedMonth = resolveCompetitionMonth(params.month, defaultCompetitionMonth())
+  const pendingOnly = params.pending === '1'
+  const [entries, availableMonths] = await Promise.all([
+    getCompetitionEntries({
+      month: selectedMonth,
+      pendingOnly,
+      sort: 'judge',
+    }),
+    getAvailableCompetitionMonths(),
+  ])
 
-  try {
-    const entries = await client.fetch<CompetitionEntry[]>(query)
-    // Filter out any entries without imageUrl (safety check)
-    return (entries || []).filter(entry => entry.imageUrl)
-  } catch (error) {
-    console.error('Error fetching competition entries:', error)
-    return []
-  }
-}
-
-export default async function JudgePage() {
-  const entries = await getCompetitionEntries()
-
-  return <ScoringGallery entries={entries} />
+  return (
+    <ScoringGallery
+      entries={entries}
+      selectedMonth={selectedMonth}
+      availableMonths={availableMonths}
+      pendingOnly={pendingOnly}
+    />
+  )
 }

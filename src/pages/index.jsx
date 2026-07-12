@@ -13,7 +13,10 @@ export default function Home({ events, featuredMember }) {
         <title>Image Creatives - Southwest Florida Photography Community</title>
         <meta name="description" content="Join Image Creatives of Southwest Florida - Where passionate photographers find their tribe, elevate their craft, and flourish through shared knowledge and unwavering support." />
       </Head>
-      <Hero backgroundImage='/hero-bg.jpg' />
+      <Hero
+        backgroundImage='/Prarrie Rust.jpg'
+        imageCredit='Image Captured by Tom Durnwald: Prairie Rust'
+      />
       
       {/* Member Spotlight Section */}
       <MemberSpotlight featuredMember={featuredMember} />

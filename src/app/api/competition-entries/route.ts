@@ -2,6 +2,7 @@ import { createClient, ClientError, ServerError } from '@sanity/client'
 import { NextResponse } from 'next/server'
 import { projectId, dataset, apiVersion } from '../../../sanity/env'
 import { COMPETITION_MAX_FILE_BYTES } from '../../../lib/competitionUploadLimits'
+import { isValidCompetitionMonth } from '../../../lib/competitionMonth'
 
 function stringifySanityBody(body: unknown): string | undefined {
   if (body === undefined || body === null) return undefined
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
     const file = formData.get('file') as File | null
     const title = formData.get('title') as string | null
     const photographer = formData.get('photographer') as string | null
+    const competitionMonth = formData.get('competitionMonth') as string | null
     const termsAccepted = formData.get('termsAccepted') === 'true'
 
     // Validate required fields
@@ -68,6 +70,13 @@ export async function POST(request: Request) {
     if (!termsAccepted) {
       return NextResponse.json(
         { error: 'Terms must be accepted to submit an entry', correlationId, type: 'validation' },
+        { status: 400 }
+      )
+    }
+
+    if (!competitionMonth || !isValidCompetitionMonth(competitionMonth)) {
+      return NextResponse.json(
+        { error: 'A valid competition month is required', correlationId, type: 'validation' },
         { status: 400 }
       )
     }
@@ -140,6 +149,7 @@ export async function POST(request: Request) {
         current: slugValue,
       },
       uploadDate: new Date().toISOString(),
+      competitionMonth,
       termsAccepted: true,
       termsAcceptedAt: new Date().toISOString(),
       termsVersion: '2026-01-15', // Must be kept in sync with Terms of Service page date

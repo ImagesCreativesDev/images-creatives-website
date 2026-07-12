@@ -1,7 +1,7 @@
 import Button from './Button'
 import Image from 'next/image'
 
-export default function Hero({ title, subtitle, ctaText, ctaLink, backgroundImage }) {
+export default function Hero({ title, subtitle, ctaText, ctaLink, backgroundImage, imageCredit }) {
   return (
     <section className='min-h-[calc(100vh-192px)] relative overflow-hidden'>
       {/* Background Image */}
@@ -22,6 +22,12 @@ export default function Hero({ title, subtitle, ctaText, ctaLink, backgroundImag
       
       {/* Content Overlay */}
       <div className='absolute inset-0 bg-gradient-to-b from-black/20 to-black/40'></div>
+
+      {imageCredit ? (
+        <p className='absolute bottom-4 left-4 md:bottom-6 md:left-6 z-20 max-w-md text-sm md:text-base text-white font-inter bg-black/55 px-3 py-2 rounded-lg backdrop-blur-sm'>
+          {imageCredit}
+        </p>
+      ) : null}
       
       <div className='relative z-10 min-h-[calc(100vh-192px)] flex flex-col px-4 md:px-8'>
         <div className='max-w-7xl mx-auto w-full flex-1 grid grid-cols-1 md:grid-cols-2 gap-8'>

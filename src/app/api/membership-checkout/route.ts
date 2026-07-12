@@ -81,6 +81,7 @@ export async function POST(request: Request) {
         },
       ],
       subscription_data: {
+        // @ts-expect-error Stripe API supports billing_cycle_anchor_config; installed SDK types may lag.
         billing_cycle_anchor_config: {
           month: 6,
           day_of_month: 1,

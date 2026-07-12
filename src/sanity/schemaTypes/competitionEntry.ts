@@ -50,6 +50,17 @@ export default defineType({
       initialValue: () => new Date().toISOString(),
     }),
     defineField({
+      name: 'competitionMonth',
+      title: 'Competition Month',
+      type: 'string',
+      description: 'Competition cycle in YYYY-MM format (e.g. 2026-08 for August 2026)',
+      validation: (Rule) =>
+        Rule.required().regex(/^\d{4}-(0[1-9]|1[0-2])$/, {
+          name: 'YYYY-MM',
+          invert: false,
+        }),
+    }),
+    defineField({
       name: 'score',
       title: 'Judge Score',
       type: 'number',
@@ -81,7 +92,14 @@ export default defineType({
     select: {
       title: 'title',
       subtitle: 'photographer',
+      competitionMonth: 'competitionMonth',
       media: 'photo',
+    },
+    prepare({ title, subtitle, competitionMonth }) {
+      return {
+        title,
+        subtitle: competitionMonth ? `${subtitle} · ${competitionMonth}` : subtitle,
+      }
     },
   },
 })

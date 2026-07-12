@@ -16,9 +16,15 @@ interface ResultsGalleryProps {
   scoredEntries: Entry[]
   pendingEntries: Entry[]
   highestScore: number
+  selectedMonth: string
 }
 
-export default function ResultsGallery({ scoredEntries, pendingEntries, highestScore }: ResultsGalleryProps) {
+export default function ResultsGallery({
+  scoredEntries,
+  pendingEntries,
+  highestScore,
+  selectedMonth,
+}: ResultsGalleryProps) {
   const [fullscreenImage, setFullscreenImage] = useState<Entry | null>(null)
 
   const handleImageClick = (entry: Entry) => {
@@ -44,6 +50,19 @@ export default function ResultsGallery({ scoredEntries, pendingEntries, highestS
 
   return (
     <>
+      {scoredEntries.length > 0 && (
+        <div className="flex justify-center mb-8">
+          <a
+            href={`/api/competition/export-pdf?month=${encodeURIComponent(selectedMonth)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-6 py-3 rounded-lg bg-flame text-white font-inter font-medium hover:bg-ember transition-colors duration-300"
+          >
+            Export PDF
+          </a>
+        </div>
+      )}
+
       {/* Scored Entries */}
       {scoredEntries.length > 0 && (
         <div className="mb-12">

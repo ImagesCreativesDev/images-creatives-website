@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import Image from 'next/image'
 import NavBar from '../../../components/NavBar'
 import Footer from '../../../components/Footer'
+import { formatCompetitionMonthLabel } from '../../../lib/competitionMonth'
+import CompetitionMonthFilter from '../CompetitionMonthFilter'
 
 interface Entry {
   _id: string
@@ -15,9 +17,17 @@ interface Entry {
 
 interface ScoringGalleryProps {
   entries: Entry[]
+  selectedMonth: string
+  availableMonths: string[]
+  pendingOnly: boolean
 }
 
-export default function ScoringGallery({ entries }: ScoringGalleryProps) {
+export default function ScoringGallery({
+  entries,
+  selectedMonth,
+  availableMonths,
+  pendingOnly,
+}: ScoringGalleryProps) {
   const [savingStates, setSavingStates] = useState<Record<string, 'idle' | 'saving' | 'saved'>>({})
   const [localScores, setLocalScores] = useState<Record<string, number>>(
     entries.reduce((acc, entry) => {
@@ -119,12 +129,26 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
         <NavBar />
         <main className="flex-grow py-12">
           <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center">
+            <div className="text-center mb-8">
               <h1 className="text-4xl md:text-5xl font-poppins font-bold text-white mb-4">
                 Competition Judging
               </h1>
               <p className="text-xl text-gray-300 font-inter">
-                No entries to judge yet.
+                {formatCompetitionMonthLabel(selectedMonth)}
+                {pendingOnly ? ' · Pending entries only' : ''}
+              </p>
+            </div>
+            <Suspense fallback={null}>
+              <CompetitionMonthFilter
+                availableMonths={availableMonths}
+                selectedMonth={selectedMonth}
+                showPendingFilter
+                pendingOnly={pendingOnly}
+              />
+            </Suspense>
+            <div className="text-center">
+              <p className="text-xl text-gray-300 font-inter">
+                No entries to judge for this month{pendingOnly ? ' (pending only)' : ''}.
               </p>
             </div>
           </div>
@@ -139,14 +163,24 @@ export default function ScoringGallery({ entries }: ScoringGalleryProps) {
       <NavBar />
       <main className="flex-grow py-12">
         <div className="max-w-7xl mx-auto px-4">
-          <div className="text-center mb-12">
+          <div className="text-center mb-8">
             <h1 className="text-4xl md:text-5xl font-poppins font-bold text-white mb-4">
               Competition Judging
             </h1>
             <p className="text-xl text-gray-300 font-inter">
-              Score each entry (0-100)
+              {formatCompetitionMonthLabel(selectedMonth)} · Score each entry (0-100)
+              {pendingOnly ? ' · Pending only' : ''}
             </p>
           </div>
+
+          <Suspense fallback={null}>
+            <CompetitionMonthFilter
+              availableMonths={availableMonths}
+              selectedMonth={selectedMonth}
+              showPendingFilter
+              pendingOnly={pendingOnly}
+            />
+          </Suspense>
 
           <div className="max-w-[1400px] mx-auto space-y-8">
           {entries.map((entry) => {
