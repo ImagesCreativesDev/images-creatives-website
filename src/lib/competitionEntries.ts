@@ -40,6 +40,15 @@ const entryProjection = `{
   uploadDate
 }`
 
+function shuffleEntries(entries: CompetitionEntry[]): CompetitionEntry[] {
+  const shuffled = [...entries]
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
 function sortEntries(entries: CompetitionEntry[], sort: 'judge' | 'results'): CompetitionEntry[] {
   if (sort === 'results') {
     return [...entries].sort((a, b) => {
@@ -49,11 +58,7 @@ function sortEntries(entries: CompetitionEntry[], sort: 'judge' | 'results'): Co
     })
   }
 
-  return [...entries].sort((a, b) => {
-    const aTime = a.uploadDate ? new Date(a.uploadDate).getTime() : 0
-    const bTime = b.uploadDate ? new Date(b.uploadDate).getTime() : 0
-    return bTime - aTime
-  })
+  return shuffleEntries(entries)
 }
 
 export async function getCompetitionEntries(
