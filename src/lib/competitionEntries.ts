@@ -1,5 +1,9 @@
 import { createClient } from 'next-sanity'
 import { projectId, dataset, apiVersion } from '../sanity/env'
+import {
+  getEffectiveCompetitionMonth,
+  isPendingCompetitionEntry,
+} from './competitionMonth'
 
 const client = createClient({
   projectId,
@@ -33,30 +37,47 @@ const entryProjection = `{
   score,
   description,
   competitionMonth,
-  uploadDate,
-  "effectiveMonth": coalesce(competitionMonth, string::slice(string::split(uploadDate, "T")[0], 0, 7))
+  uploadDate
 }`
+
+function sortEntries(entries: CompetitionEntry[], sort: 'judge' | 'results'): CompetitionEntry[] {
+  if (sort === 'results') {
+    return [...entries].sort((a, b) => {
+      const scoreDiff = (b.score ?? -1) - (a.score ?? -1)
+      if (scoreDiff !== 0) return scoreDiff
+      return a.title.localeCompare(b.title)
+    })
+  }
+
+  return [...entries].sort((a, b) => {
+    const aTime = a.uploadDate ? new Date(a.uploadDate).getTime() : 0
+    const bTime = b.uploadDate ? new Date(b.uploadDate).getTime() : 0
+    return bTime - aTime
+  })
+}
 
 export async function getCompetitionEntries(
   options: GetCompetitionEntriesOptions = {}
 ): Promise<CompetitionEntry[]> {
   const { month = null, pendingOnly = false, sort = 'judge' } = options
-  const orderClause =
-    sort === 'results' ? 'order(score desc, title asc)' : 'order(uploadDate desc)'
 
-  const query = `*[
-    _type == "competitionEntry"
-    && defined(photo.asset->url)
-    && ($month == null || coalesce(competitionMonth, string::slice(string::split(uploadDate, "T")[0], 0, 7)) == $month)
-    && ($pendingOnly != true || !defined(score))
-  ] | ${orderClause} ${entryProjection}`
+  const query = `*[_type == "competitionEntry" && defined(photo.asset->url)] ${entryProjection}`
 
   try {
-    const entries = await client.fetch<CompetitionEntry[]>(query, {
-      month,
-      pendingOnly,
-    })
-    return (entries || []).filter((entry) => entry.imageUrl)
+    const entries = await client.fetch<CompetitionEntry[]>(query)
+    let filtered = (entries || []).filter((entry) => entry.imageUrl)
+
+    if (month) {
+      filtered = filtered.filter(
+        (entry) => getEffectiveCompetitionMonth(entry) === month
+      )
+    }
+
+    if (pendingOnly) {
+      filtered = filtered.filter((entry) => isPendingCompetitionEntry(entry.score))
+    }
+
+    return sortEntries(filtered, sort)
   } catch (error) {
     console.error('Error fetching competition entries:', error)
     return []
@@ -64,15 +85,21 @@ export async function getCompetitionEntries(
 }
 
 export async function getAvailableCompetitionMonths(): Promise<string[]> {
-  const query = `array::unique(
-    *[_type == "competitionEntry" && defined(photo.asset->url)]{
-      "month": coalesce(competitionMonth, string::slice(string::split(uploadDate, "T")[0], 0, 7))
-    }.month
-  ) | order(@ desc)`
+  const query = `*[_type == "competitionEntry" && defined(photo.asset->url)]{
+    competitionMonth,
+    uploadDate
+  }`
 
   try {
-    const months = await client.fetch<string[]>(query)
-    return (months || []).filter(Boolean)
+    const entries = await client.fetch<Array<{ competitionMonth?: string; uploadDate?: string }>>(query)
+    const months = new Set<string>()
+
+    for (const entry of entries || []) {
+      const month = getEffectiveCompetitionMonth(entry)
+      if (month) months.add(month)
+    }
+
+    return Array.from(months).sort((a, b) => b.localeCompare(a))
   } catch (error) {
     console.error('Error fetching competition months:', error)
     return []

@@ -98,7 +98,23 @@ export default function ScoringGallery({
   const handleCommentsBlur = async (e: React.FocusEvent<HTMLTextAreaElement>, _id: string, scoreFallback: number | undefined) => {
     const description = e.target.value
     setLocalComments((prev) => ({ ...prev, [_id]: description }))
-    const currentScore = localScores[_id] ?? scoreFallback ?? 0
+    const currentScore = localScores[_id] ?? scoreFallback
+    if (currentScore === undefined || currentScore === null) {
+      try {
+        const response = await fetch('/api/score', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ _id, description }),
+        })
+        if (!response.ok) {
+          alert('Failed to save comments. Please try again.')
+        }
+      } catch (error) {
+        console.error('Error saving comments:', error)
+        alert('Failed to save comments. Please try again.')
+      }
+      return
+    }
     await handleSave(_id, currentScore, description)
   }
 

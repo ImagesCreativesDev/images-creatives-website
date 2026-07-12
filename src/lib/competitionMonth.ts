@@ -13,9 +13,29 @@ export function formatCompetitionMonth(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
 }
 
+export function normalizeCompetitionMonth(value?: string | null): string | null {
+  if (!value) return null
+  const trimmed = value.trim()
+  return isValidCompetitionMonth(trimmed) ? trimmed : null
+}
+
 export function competitionMonthFromUploadDate(uploadDate: string): string {
-  const datePart = uploadDate.split('T')[0] ?? uploadDate
+  const datePart = uploadDate.split('T')[0]?.split(' ')[0] ?? uploadDate
   return datePart.slice(0, 7)
+}
+
+export function getEffectiveCompetitionMonth(entry: {
+  competitionMonth?: string | null
+  uploadDate?: string | null
+}): string | null {
+  const normalized = normalizeCompetitionMonth(entry.competitionMonth)
+  if (normalized) return normalized
+  if (entry.uploadDate) return competitionMonthFromUploadDate(entry.uploadDate)
+  return null
+}
+
+export function isPendingCompetitionEntry(score?: number | null): boolean {
+  return score === undefined || score === null
 }
 
 export function formatCompetitionMonthLabel(value: string): string {
