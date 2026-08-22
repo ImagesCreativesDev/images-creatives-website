@@ -14,8 +14,8 @@ export default function Home({ events, featuredMember }) {
         <meta name="description" content="Join Image Creatives of Southwest Florida - Where passionate photographers find their tribe, elevate their craft, and flourish through shared knowledge and unwavering support." />
       </Head>
       <Hero
-        backgroundImage='/Prarrie Rust.jpg'
-        imageCredit='Image Captured by Tom Durnwald: Prairie Rust'
+        backgroundImage='/ML-Night-School.jpg'
+        imageCredit='Image Captured by Mike Lang: Night School'
       />
       
       {/* Member Spotlight Section */}
