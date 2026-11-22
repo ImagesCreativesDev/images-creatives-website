@@ -25,7 +25,7 @@ export default function MembershipCTA() {
             </h2>
             
             <p className='text-white font-inter leading-relaxed mb-8'>
-              Looking to join the Image Creatives? Already a member and ready to renew? Now is the time! Become a member NOW for the 2025 year ($100) and join us for education, community, and more!
+              Looking to join the Image Creatives? Already a member and ready to renew? Now is the time! Become a member NOW for the 2026-2027 year ($100) and join us for education, community, and more!
             </p>
 
             {/* CTA Button */}
@@ -109,7 +109,7 @@ export default function MembershipCTA() {
                 {/* Decorative border */}
                 <div className='border-2 border-black rounded-lg p-4'>
                   <div className='text-center'>
-                    <div className='text-2xl font-poppins font-bold text-black mb-2'>2025</div>
+                    <div className='text-2xl font-poppins font-bold text-black mb-2'>2026-2027</div>
                     <div className='text-sm font-inter text-gray-600'>Membership</div>
                   </div>
                 </div>

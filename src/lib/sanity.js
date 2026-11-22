@@ -100,7 +100,17 @@ export async function getUpcomingEvents(limit = 10) {
     },
     eventDate,
     location,
-    image,
+    image {
+      ...,
+      asset->{
+        _id,
+        _type,
+        url,
+        metadata {
+          dimensions { width, height }
+        }
+      }
+    },
     registrationLink,
     isVirtual,
     headerColor,

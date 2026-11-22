@@ -5,9 +5,32 @@ import { urlFor } from '../lib/sanity'
 import { portableTextToPlainText } from '../lib/eventPortableText'
 import Button from './Button'
 
+function getEventImageLayout(image) {
+  const dimensions = image?.asset?.metadata?.dimensions
+  let width = dimensions?.width
+  let height = dimensions?.height
+
+  if (width && height && image.crop) {
+    const widthFactor = 1 - (image.crop.left || 0) - (image.crop.right || 0)
+    const heightFactor = 1 - (image.crop.top || 0) - (image.crop.bottom || 0)
+    if (widthFactor > 0 && heightFactor > 0) {
+      width = Math.max(1, Math.round(width * widthFactor))
+      height = Math.max(1, Math.round(height * heightFactor))
+    }
+  }
+
+  return {
+    src: urlFor(image).width(1600).fit('max').auto('format').url(),
+    width: width || 600,
+    height: height || 800,
+    hasDimensions: Boolean(width && height),
+  }
+}
+
 export default function EventsCarousel({ events = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const currentEvent = events[currentIndex]
+  const eventImage = currentEvent?.image ? getEventImageLayout(currentEvent.image) : null
 
   const formatDate = (dateString) => {
     const date = new Date(dateString)
@@ -66,17 +89,25 @@ export default function EventsCarousel({ events = [] }) {
             <div className='bg-gray-800/50 rounded-brand-lg overflow-hidden shadow-brand-xl'>
               <div className='grid md:grid-cols-3 gap-0'>
                 {/* Left Column - Event Image */}
-                <div className='md:col-span-1 relative h-64 md:h-auto'>
-                  {currentEvent.image ? (
+                <div className='md:col-span-1 relative w-full min-h-64 self-start flex items-center justify-center'>
+                  {eventImage?.hasDimensions ? (
                     <Image
-                      src={urlFor(currentEvent.image).width(600).height(800).url()}
-                      alt={currentEvent.title}
-                      width={600}
-                      height={800}
-                      className='w-full h-full object-cover'
+                      src={eventImage.src}
+                      alt={currentEvent.image?.alt || currentEvent.title}
+                      width={eventImage.width}
+                      height={eventImage.height}
+                      sizes='(max-width: 768px) 100vw, 33vw'
+                      className='w-full h-auto'
+                      style={{ width: '100%', height: 'auto' }}
+                    />
+                  ) : eventImage ? (
+                    <img
+                      src={eventImage.src}
+                      alt={currentEvent.image?.alt || currentEvent.title}
+                      className='w-full h-auto'
                     />
                   ) : (
-                    <div className='w-full h-full bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
+                    <div className='w-full min-h-64 bg-gradient-to-br from-flame/30 to-ember/30 flex items-center justify-center'>
                       <div className='text-center'>
                         <div className='text-6xl mb-4'>📅</div>
                         <p className='text-white/80 font-inter'>Event Image</p>
